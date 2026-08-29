@@ -1,0 +1,63 @@
+# BizBuyBot Portal Search Configuration
+# Copy this file to portals.yml (gitignored) and customize with your search criteria.
+# Used by `node scan.mjs` and the `/bizbuybot scan` command to discover listings.
+
+# --- Search Queries ---
+# Each query is passed to Playwright as a search engine query.
+# site: filters restrict results to specific marketplaces.
+search_queries:
+  - query: "site:bizbuysell.com laundromat for sale Texas"
+    label: "BizBuySell - Laundromat - TX"
+
+  - query: "site:bizbuysell.com car wash for sale Texas"
+    label: "BizBuySell - Car Wash - TX"
+
+  - query: "site:bizbuysell.com HVAC business for sale"
+    label: "BizBuySell - HVAC"
+
+  - query: "site:bizquest.com laundromat for sale Texas"
+    label: "BizQuest - Laundromat - TX"
+
+  - query: "site:bizquest.com commercial cleaning business for sale"
+    label: "BizQuest - Commercial Cleaning"
+
+  - query: "site:bizquest.com auto repair shop for sale"
+    label: "BizQuest - Auto Repair"
+
+# --- Filters ---
+# Applied to scraped listings before evaluation.
+filters:
+  asking_price_range:
+    min: 100000
+    max: 1000000
+
+  sde_range:
+    min: 50000
+    max: 500000
+
+  # States to include (empty = all)
+  locations: []
+
+  # Category keywords to include (empty = all)
+  categories:
+    - laundromat
+    - car wash
+    - HVAC
+    - plumbing
+    - commercial cleaning
+    - auto repair
+
+  # Exclude listings matching these keywords
+  exclude_keywords:
+    - franchise resale
+    - distressed
+
+# --- Provider Settings ---
+providers:
+  bizbuysell:
+    enabled: true
+    max_results_per_query: 25
+
+  bizquest:
+    enabled: true
+    max_results_per_query: 25

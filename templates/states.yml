@@ -1,0 +1,45 @@
+# BizBuyBot Deal Lifecycle States
+# These are the only valid status values for deals in the pipeline.
+# Status transitions must be logged in data/status-log.tsv.
+
+states:
+  - name: Evaluated
+    description: "Listing has been evaluated with the A-F rubric. Report generated."
+    initial: true
+    next: [Outreach_Sent, Passed, Watchlist]
+
+  - name: Outreach_Sent
+    description: "Initial broker/seller outreach email has been sent."
+    next: [Under_Review, Passed, Watchlist]
+
+  - name: Under_Review
+    description: "Broker responded; reviewing CIM, financials, and additional info."
+    next: [LOI_Submitted, Passed, Watchlist]
+
+  - name: LOI_Submitted
+    description: "Letter of Intent has been drafted and submitted to seller/broker."
+    next: [Under_LOI, Passed]
+
+  - name: Under_LOI
+    description: "LOI accepted by seller; exclusivity period granted."
+    next: [Due_Diligence, Passed]
+
+  - name: Due_Diligence
+    description: "Formal due diligence in progress — financials, legal, operational verification."
+    next: [Closing, Passed]
+
+  - name: Closing
+    description: "Deal is in final closing — financing finalized, legal docs being prepared."
+    next: [Closed, Passed]
+
+  - name: Closed
+    description: "Deal has closed. Acquisition complete."
+    terminal: true
+
+  - name: Passed
+    description: "Deal has been rejected or fell through. No further action."
+    terminal: true
+
+  - name: Watchlist
+    description: "Deal is parked for future monitoring. Not actively pursued."
+    next: [Outreach_Sent, Passed]

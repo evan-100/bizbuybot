@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Personal user data (gitignored per DATA_CONTRACT)
+config/profile.yml
+portals.yml
+buyer-profile.md
+
+# Generated per-user artifacts
+data/cache/
+data/local-benchmarks.yml
+
+# Secrets / env
+.env
+.env.*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
+
+# Local tool state
+.superpowers/

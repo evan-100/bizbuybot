@@ -1,0 +1,133 @@
+# BizBuyBot Industry Benchmarks
+# SDE multiples for Small Main Street businesses + sourced revenue/SDE reference points.
+#
+# ═══════════════════════════════════════════════════════════════════════
+# DATA SOURCES & METHODOLOGY (do not remove — every number traces to these)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# revenue_benchmark.avg — US Census Bureau, Statistics of U.S. Businesses (SUSB) 2022.
+#   Average annual receipts per FIRM for firms with <20 employees (main-street scale;
+#   all-firm averages are skewed by national chains). NAICS codes used:
+#     Laundromat = 812310+812320 · Car Wash = 811192 · HVAC/Plumbing = 238220
+#     Commercial Cleaning = 561720+561790 · Auto Repair = 811111
+#     Food Service = 722 · Retail = 44-45 (still chain-skewed — use with caution)
+#   Source: https://www.census.gov/data/datasets/2022/econ/susb/2022-susb.html
+#
+# sde_benchmark.avg — DERIVED: revenue_benchmark.avg × IRS SOI sole-proprietorship
+#   net margin (net income ÷ receipts, Schedule C returns). Schedule C net income
+#   already represents owner profit, making it the closest federal analog to SDE;
+#   it is CONSERVATIVE because it excludes depreciation/interest add-backs.
+#   Margins by category (vintage):
+#     Laundromat 25.6% (NAICS 812 sole-prop, TY2022)
+#     Car Wash / Auto Repair 23.1% (sector 81 sole-prop, TY2021)
+#     HVAC/Plumbing 15.0% (sector 23 sole-prop, TY2021–22 avg)
+#     Commercial Cleaning 22.5% (sector 56 sole-prop, TY2022)
+#     Retail 7.7% (sector 44-45 sole-prop, TY2021)
+#     Food Service 5.3% (NAICS 722 C-corp, 2013 — sole-prop unavailable; conservative)
+#     General Main Street 19.7% (all nonfarm sole-prop, TY2022)
+#   Source: https://www.irs.gov/statistics/soi-tax-stats-sole-proprietorship-statistics
+#
+# sde_multiple_min/max — industry rules of thumb (BizBuySell/BizQuest historical,
+#   SBA lending norms). Guidelines, not absolutes.
+#
+# These are national reference points, directional only. Real businesses vary by
+# state, metro, and size. Always verify against the listing's actual financials.
+
+benchmarks:
+  - category: "Laundromat"
+    keywords: ["laundry"]
+    sde_multiple_min: 3.0
+    sde_multiple_max: 4.5
+    typical_sde_margin: "20-30% of gross revenue"
+    revenue_benchmark:
+      avg: 321000
+    sde_benchmark:
+      avg: 82000
+    notes: "Asset-heavy, semi-absentee capable. Equipment age and lease term heavily impact valuation."
+
+  - category: "Car Wash"
+    keywords: ["carwash"]
+    sde_multiple_min: 3.0
+    sde_multiple_max: 4.0
+    typical_sde_margin: "25-35% of gross revenue"
+    revenue_benchmark:
+      avg: 459000
+    sde_benchmark:
+      avg: 106000
+    notes: "Tunnel vs self-serve vs in-bay affects multiple. Real estate ownership premium."
+
+  - category: "HVAC"
+    keywords: ["insulation", "drywall", "heating"]
+    sde_multiple_min: 2.5
+    sde_multiple_max: 3.5
+    typical_sde_margin: "10-20% of gross revenue"
+    revenue_benchmark:
+      avg: 921000
+    sde_benchmark:
+      avg: 138000
+    notes: "Recurring service agreements (RSAs) drive premium. Technician retention is key."
+
+  - category: "Plumbing"
+    keywords: []
+    sde_multiple_min: 2.5
+    sde_multiple_max: 3.5
+    typical_sde_margin: "10-20% of gross revenue"
+    revenue_benchmark:
+      avg: 921000
+    sde_benchmark:
+      avg: 138000
+    notes: "Similar to HVAC. License transferability and van/equipment value matter."
+
+  - category: "Commercial Cleaning"
+    keywords: ["janitorial", "maid"]
+    sde_multiple_min: 2.0
+    sde_multiple_max: 3.0
+    typical_sde_margin: "15-25% of gross revenue"
+    revenue_benchmark:
+      avg: 383000
+    sde_benchmark:
+      avg: 86000
+    notes: "Contract-based revenue commands premium. Employee turnover is primary risk."
+
+  - category: "Auto Repair"
+    keywords: ["automotive", "mechanic"]
+    sde_multiple_min: 2.5
+    sde_multiple_max: 3.5
+    typical_sde_margin: "10-20% of gross revenue"
+    revenue_benchmark:
+      avg: 677000
+    sde_benchmark:
+      avg: 157000
+    notes: "ASE certifications and equipment lift value. Customer retention is key driver."
+
+  - category: "Retail"
+    keywords: ["shop", "store"]
+    sde_multiple_min: 2.0
+    sde_multiple_max: 3.0
+    typical_sde_margin: "5-15% of gross revenue"
+    revenue_benchmark:
+      avg: 1562000
+    sde_benchmark:
+      avg: 120000
+    notes: "Census revenue average still includes larger chains — treat with caution. Inventory and lease terms drive valuation."
+
+  - category: "Food Service"
+    keywords: ["food", "restaurant", "cafe", "catering", "bar"]
+    sde_multiple_min: 1.5
+    sde_multiple_max: 2.5
+    typical_sde_margin: "10-20% of gross revenue"
+    revenue_benchmark:
+      avg: 579000
+    sde_benchmark:
+      avg: 31000
+    notes: "SDE reference uses C-corp margin (sole-prop unavailable) — likely understated. Operational intensity and key-man risk drive low multiples."
+
+  - category: "General Main Street"
+    sde_multiple_min: 2.0
+    sde_multiple_max: 3.2
+    typical_sde_margin: "10-25% of gross revenue"
+    revenue_benchmark:
+      avg: 550000
+    sde_benchmark:
+      avg: 108000
+    notes: "Baseline (sector 81, Other Services) for any Small Main Street business not matching a specific category above."

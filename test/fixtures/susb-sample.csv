@@ -1,0 +1,8 @@
+MSA,NAICS,ENTRSIZE,FIRM,ESTB,EMPL,EMPLFL_N,PAYR,PAYRFL_N,RCPT,RCPTFL_N,MSADSCR,NAICSDSCR,ENTRSIZEDSCR
+36740,812,02,300,310,900,G,45000,G,150,G,"Orlando-Kissimmee-Sanford, FL Metro Area",Total,02: <5
+36740,812,03,120,125,800,G,40000,G,130,G,"Orlando-Kissimmee-Sanford, FL Metro Area",Total,03: 5-9
+36740,812,04,80,82,1100,G,50000,G,140,G,"Orlando-Kissimmee-Sanford, FL Metro Area",Total,04: 10-19
+36740,812,05,30,31,1500,G,60000,G,90000,G,"Orlando-Kissimmee-Sanford, FL Metro Area",Total,05: 20-99
+36740,238,01,S,S,5000,D,90000,S,700000,S,"Orlando-Kissimmee-Sanford, FL Metro Area",Total,01: Total
+10100,812,02,50,51,150,0,7000,0,25000,0,"Aberdeen, SD Micro Area",Total,02: <5
+36740,--,02,9000,9200,40000,G,900000,G,3000000,G,"Orlando-Kissimmee-Sanford, FL Metro Area",Total,02: <5
