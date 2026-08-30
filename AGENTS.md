@@ -20,6 +20,7 @@ The user interacts with BizBuyBot through slash commands:
 | `/bizbuybot dd <slug or ID>` | Generate tailored Due Diligence Checklist |
 | `/bizbuybot outreach <slug or ID>` | Generate Broker/Seller initial inquiry email |
 | `/bizbuybot tracker` | Summarize current acquisition pipeline metrics |
+| `/bizbuybot pipeline` | Review the pending inbox — leads found but not yet evaluated |
 | `/bizbuybot export` | Export pipeline to CSV or JSON |
 
 ### How Modes Work
@@ -30,7 +31,7 @@ The routing logic is defined in `.agents/skills/bizbuybot/SKILL.md`. Key routing
 
 - No argument → show menu + pipeline summary (`modes/tracker.md`).
 - URL or pasted text → `modes/auto-pipeline.md` (fetch → evaluate → tracker entry).
-- Subcommand (`setup`, `scan`, `loi`, `dd`, `outreach`, `tracker`) → corresponding mode file. `export` → `modes/tracker.md` Step 7.
+- Subcommand (`setup`, `scan`, `loi`, `dd`, `outreach`, `tracker`, `pipeline`) → corresponding mode file. `export` → `modes/tracker.md` Step 7.
 
 ### Human-in-the-Loop Principle
 

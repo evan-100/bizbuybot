@@ -70,7 +70,8 @@ Present the results as a readable markdown table in chat, then triage. Do not ju
    ```
    Next steps:
      /bizbuybot <listing-url>   — evaluate a listing (A-F report + tracker entry)
-     /bizbuybot scan            — run this scan again later
+     /bizbuybot pipeline        — review the pending inbox later / re-triage
+     /bizbuybot scan            — run this scan again
    ```
 
 ### Step 5 — Terminal Summary
