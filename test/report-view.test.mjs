@@ -82,6 +82,14 @@ test('parseYamlFooter extracts the bizbuybot object', () => {
   assert.deepEqual(footer.key_risks, ['Equipment age unknown', 'Single location']);
 });
 
+test('parseYamlFooter tolerates an unfenced footer (missing ```yaml)', () => {
+  const unfenced = SAMPLE_REPORT.replace(/```yaml\s*\n---/, '---').replace(/\n---\n```\s*$/, '\n---');
+  const footer = parseYamlFooter(unfenced);
+  assert.ok(footer, 'bare --- document markers should parse');
+  assert.equal(footer.business_name, 'Alpha Laundromat');
+  assert.equal(footer.score, 4.4);
+});
+
 test('parseYamlFooter returns null when no yaml footer', () => {
   assert.equal(parseYamlFooter('# no footer'), null);
 });
@@ -237,6 +245,31 @@ test('explicit footer flags mark estimates without prose heuristics', () => {
   );
   const html = renderReportPage({ deal: DEAL_FIXTURE, reportMd: flagged, benchmarks: BENCHMARKS });
   assert.ok(html.includes('≈ $800K') || /Gross Revenue[\s\S]*?≈ \$800,000/.test(html), 'revenue card flagged via footer flag');
+});
+
+test('renderReportPage shows an EBITDA card when the footer discloses EBITDA', () => {
+  const withEbitda = SAMPLE_REPORT.replace(
+    '  financing_fit: "Strong"',
+    '  financing_fit: "Strong"\n  ebitda: 120000',
+  );
+  const html = renderReportPage({ deal: DEAL_FIXTURE, reportMd: withEbitda, benchmarks: BENCHMARKS });
+  assert.ok(html.includes('EBITDA'), 'EBITDA card rendered');
+  assert.ok(html.includes('$120,000'), 'EBITDA value formatted');
+});
+
+test('renderReportPage omits the EBITDA card when the footer does not disclose EBITDA', () => {
+  const html = renderReportPage({ deal: DEAL_FIXTURE, reportMd: SAMPLE_REPORT, benchmarks: BENCHMARKS });
+  assert.ok(!html.includes('EBITDA'), 'no EBITDA card without a disclosed figure');
+});
+
+test('renderReportPage flags an estimated EBITDA from the footer flag', () => {
+  const est = SAMPLE_REPORT.replace(
+    '  financing_fit: "Strong"',
+    '  financing_fit: "Strong"\n  ebitda: 120000\n  ebitda_estimated: true',
+  );
+  const html = renderReportPage({ deal: DEAL_FIXTURE, reportMd: est, benchmarks: BENCHMARKS });
+  assert.ok(html.includes('≈ $120,000'), 'EBITDA card marked as estimate');
+  assert.ok(html.includes('>estimated</span>'), 'estimate chip shown');
 });
 
 test('clean reports show no estimate markers', () => {

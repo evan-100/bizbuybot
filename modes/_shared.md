@@ -146,8 +146,10 @@ bizbuybot:
   asking_price: <number>
   revenue: <number>
   sde: <number>
+  ebitda: <number>
   revenue_estimated: <boolean>
   sde_estimated: <boolean>
+  ebitda_estimated: <boolean>
   multiple: <number>
   score: <number>
   risk_tier: "High Confidence" | "Proceed with Caution" | "High Risk / Suspicious"
@@ -162,7 +164,8 @@ bizbuybot:
 
 Rules:
 - `asking_price`, `revenue`, `sde`, `multiple`, `score` are numbers (not strings).
-- `revenue_estimated` / `sde_estimated` are booleans. Set `true` whenever the figure is NOT directly disclosed by the seller — provisional estimates derived from margins, rules of thumb, or industry defaults MUST be flagged. When omitted, the value is treated as seller-disclosed. Never present an estimate as a disclosed figure.
+- `revenue_estimated` / `sde_estimated` / `ebitda_estimated` are booleans. Set `true` whenever the figure is NOT directly disclosed by the seller — provisional estimates derived from margins, rules of thumb, or industry defaults MUST be flagged. When omitted, the value is treated as seller-disclosed. Never present an estimate as a disclosed figure.
+- `ebitda` is OPTIONAL: include it ONLY when the seller directly discloses an EBITDA figure. Otherwise omit the key entirely — never derive, estimate, or invent EBITDA. This is a premium-valuation metric for larger, professionally-run deals; Main Street listings rarely report it.
 - `score` is the holistic global score (1.0–5.0).
 - `multiple` is the adjusted SDE multiple (one decimal, no "x").
 - `key_risks` is a non-empty list of 1–5 short strings.
