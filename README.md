@@ -15,9 +15,9 @@
 
 ---
 
-Buying a small Main Street business — a laundromat, an HVAC/plumbing contractor, a commercial cleaning company — involves hundreds of listings, most of them filters. BizBuyBot turns any agent-skill-capable AI coding CLI into a **business acquisition command center**: it scans marketplaces, evaluates listings into a structured A-F report with a 1.0–5.0 score, generates the documents you need to act, and tracks every deal in an auditable pipeline.
+Buying a small Main Street business — a laundromat, an HVAC/plumbing contractor, a commercial cleaning company — starts with hundreds of listings, and most of them aren't worth your time. BizBuyBot turns your AI coding CLI into a buying-side command center: it scans the marketplaces, evaluates listings into an easy-to-read report with a 1.0–5.0 score, drafts the documents you'll need to act, and keeps every deal in one auditable pipeline.
 
-**Important: this not a "spray and pray" acquisitbot.** BizBuyBot is a filter. It tells you which few businesses out of a batch are actually worth your time, and it drafts the documents — the decisions and the actions (offers, outreach, LOI submission) are always yours.
+**Important: this isn't a "spray and pray" tool.** BizBuyBot is a filter. It helps you find the handful of listings worth pursuing out of a batch, and it drafts the paperwork — the decisions and the actions (offers, outreach, submission) are always yours.
 
 ---
 
@@ -25,15 +25,15 @@ Buying a small Main Street business — a laundromat, an HVAC/plumbing contracto
 
 | Feature | What it does |
 |---|---|
-| **Auto-Pipeline** | Paste a listing URL or text → fetch → A-F evaluation → tracker entry in one command |
-| **A-F Evaluation** | Five scoring dimensions (1–5 each) + a holistic 1.0–5.0 global score; full report with 6 blocks and a machine-readable YAML footer |
-| **Industry Benchmarks** | National SDE-multiple ranges per category, upgradeable to **local** metro revenue (US Census SUSB) and state margins (IRS SOI) via `build-benchmarks.mjs` |
-| **Due-Diligence Checklists** | Tailored DD checklist per deal, covering financials, lease, employees, and valuation |
-| **Broker / Seller Outreach** | Initial inquiry email drafts, tuned to the deal's gaps |
+| **Auto-Pipeline** | Paste a listing URL or text — get a full evaluation and a tracker entry in one step |
+| **A-F Evaluation** | Five scoring dimensions plus a holistic 1.0–5.0 score, with a clear written report you can act on |
+| **Industry Benchmarks** | SDE-multiple ranges per business category; calibrate to your own metro and state |
+| **Due-Diligence Checklists** | A tailored checklist per deal — financials, lease, employees, valuation |
+| **Broker / Seller Outreach** | Initial inquiry email drafts, focused on the gaps in each listing |
 | **Letter of Intent** | Customized LOI drafts from the evaluated deal |
-| **Portal Scanner** | Playwright-based scraping of BizBuySell / BizQuest with filters, dedup, and a manual-review inbox |
-| **Browser Dashboard** | Filter/sort your pipeline, preview reports and DD/LOI/outreach artifacts at `localhost:4826` |
-| **Pipeline Integrity** | Deterministic scripts own every write; status transitions are audited; `verify-pipeline` validates the tracker |
+| **Portal Scanner** | Scrape BizBuySell / BizQuest automatically, with filtering and dedup |
+| **Browser Dashboard** | Visualize and manage your pipeline, with every report and draft one click away |
+| **Pipeline Integrity** | You never hand-edit records — data is written by safe, repeatable tools, so your pipeline stays auditable |
 | **Human-in-the-Loop** | BizBuyBot evaluates and drafts. It **never** submits, sends, or commits anything for you. You decide and act |
 
 ---
@@ -43,8 +43,8 @@ Buying a small Main Street business — a laundromat, an HVAC/plumbing contracto
 ### Prerequisites
 
 - **Node.js 18+**
-- An AI coding CLI that supports agent skills (OpenCode, Claude Code, Codex, Copilot, ...) — you'll run BizBuyBot from inside it
-- `npx playwright install chromium` only if you want the **scan** feature
+- An AI coding CLI that supports agent skills (OpenCode, Claude Code, Codex, Copilot, ...) — you run BizBuyBot from inside it
+- `npx playwright install chromium` — only if you want the **scan** feature
 
 ### Install
 
@@ -60,48 +60,47 @@ npm install
 cp config/profile.example.yml config/profile.yml    # your financial capacity + deal criteria
 cp templates/portals.example.yml portals.yml         # search queries for the scanner
 cp buyer-profile.example.md buyer-profile.md         # your investment thesis
-npm run doctor                                       # validates the whole setup
+npm run doctor                                       # verifies everything is ready
 ```
 
-> Everything in `data/` ships as **fictional sample data** so the dashboard, tracker, and reports work immediately. Replace it with your own deals using the scripts — never hand-edit the tracker.
+> The repo ships with **fictional sample data**, so the dashboard and tracker work immediately. Replace it with your own deals using the scripts below.
 
 ### Run
 
-Open your AI CLI in the `bizbuybot/` directory and use the commands:
+Open your AI CLI in the `bizbuybot/` directory and start with:
 
 ```
 /bizbuybot                  → interactive menu + pipeline summary
 /bizbuybot <URL or text>    → full auto-pipeline
-/bizbuybot dashboard        → browser dashboard (localhost:4826)
+/bizbuybot dashboard        → open the browser dashboard
 ```
 
 Or launch the dashboard directly:
 
 ```bash
-npm run dashboard           # opens http://localhost:4826 with sample data
+npm run dashboard
 ```
 
-### Use It (Your Flow)
+### A Typical Flow
 
 ```bash
-# 1. Find deals meeting your criteria
-# 2. Evaluate a listing — paste a URL or pasted listing text:
+# 1. Find a listing that meets your criteria
+# 2. Evaluate it — paste the URL or listing text:
 /bizbuybot https://www.bizbuysell.com/business-opportunity/...
-# 3. Read the evaluation — score, multiple, DSCR, red flags
-# 4. Act on the good ones:
+# 3. Read the report — score, multiple, cash flow, red flags
+# 4. If it's worth pursuing, generate the documents:
 /bizbuybot dd 001          # due-diligence checklist
 /bizbuybot loi 001         # letter of intent draft
 /bizbuybot outreach 001    # broker/seller inquiry draft
-# 5. Track and verify
+# 5. Track everything
 /bizbuybot tracker
-npm run verify
 ```
 
 ---
 
 ## Screenshots
 
-| Pipeline dashboard | Deal report | DD checklist artifact |
+| Pipeline dashboard | Deal report | Due-diligence checklist |
 |---|---|---|
 | ![Pipeline](docs/screenshots/dashboard-pipeline.png) | ![Deal report](docs/screenshots/dashboard-deal.png) | ![DD checklist](docs/screenshots/dashboard-dd.png) |
 
@@ -113,56 +112,47 @@ npm run verify
 
 | Command | Action |
 |---|---|
-| `/bizbuybot` | Show interactive menu of available commands and pipeline summary |
-| `/bizbuybot <URL or text>` | Run auto-pipeline (Fetch → A-F Eval → Tracker entry) |
-| `/bizbuybot setup` | Set up or edit your buyer profile (interactive interview) |
-| `/bizbuybot scan` | Scrape BizBuySell/BizQuest for deals matching criteria |
-| `/bizbuybot loi <slug or ID>` | Generate customized Letter of Intent |
-| `/bizbuybot dd <slug or ID>` | Generate tailored Due Diligence Checklist |
-| `/bizbuybot outreach <slug or ID>` | Generate Broker/Seller initial inquiry email |
-| `/bizbuybot tracker` | Summarize current acquisition pipeline metrics |
-| `/bizbuybot dashboard` | Browser dashboard (localhost:4826) |
-| `/bizbuybot export` | Export pipeline to CSV or JSON |
+| `/bizbuybot` | Show the interactive menu and pipeline summary |
+| `/bizbuybot <URL or text>` | Run auto-pipeline (fetch → evaluate → track) |
+| `/bizbuybot setup` | Set up or edit your buyer profile |
+| `/bizbuybot scan` | Scrape BizBuySell/BizQuest for deals matching your criteria |
+| `/bizbuybot loi <id>` | Generate a customized Letter of Intent |
+| `/bizbuybot dd <id>` | Generate a tailored Due Diligence Checklist |
+| `/bizbuybot outreach <id>` | Generate a broker/seller inquiry draft |
+| `/bizbuybot tracker` | Summarize current pipeline metrics |
+| `/bizbuybot dashboard` | Open the browser dashboard |
+| `/bizbuybot export` | Export your pipeline data |
 
-### Deterministic Scripts
+### Behind the scenes
 
-| Script | What it does |
-|---|---|
-| `node add-entry.mjs --business=... --category=... --price=... --sde=...` | Append a deal to the tracker (auto-assigns ID, computes multiple) |
-| `node set-status.mjs 001 Evaluated --reason="..."` | Transition a deal's status with audit logging |
-| `node verify-pipeline.mjs` | Validate pipeline integrity |
-| `node export-pipeline.mjs --format=csv\|json` | Export the tracker |
-| `node scan.mjs` | Scrape marketplaces → dedupe → append leads |
-| `node dashboard.mjs [--port=N] [--no-open]` | Browser dashboard |
-| `node doctor.mjs` | Check setup health |
-| `node build-benchmarks.mjs` | Derive **local** benchmarks from Census + IRS data |
+BizBuyBot keeps your data safe with a few simple command-line tools — add deals, change statuses, verify the pipeline, export, scan marketplaces, check setup health, and calibrate benchmarks. Quality is enforced by automated tests and a pipeline-integrity check that run on every change.
 
 ---
 
 ## How It Works
 
-Businesses that match your criteria are passed through **mode files** in `modes/` — the prompt specs that drive the A-F rubric, DD checklist generation, LOI drafting, and tracking. Deterministic JavaScript scripts (in `lib/` and the repo root) are the **only writers** to pipeline data, which keeps the tracker auditable and safe.
+Each command maps to a set of instructions (evaluation rubric, checklist template, LOI drafting) that your CLI follows step by step. Safe, repeatable scripts are the only thing that writes to your pipeline — so your records stay clean and auditable.
 
-BizBuyBot enforces a strict **two-layer data contract**:
+BizBuyBot also keeps a strict separation between:
 
-- **System layer** (version-controlled, read-only to you): `modes/`, `templates/`, `providers/`, `lib/`, the scripts.
-- **User layer** (personal, preserved across updates): `config/profile.yml`, `portals.yml`, `buyer-profile.md`, your deal data, and generated reports — these are gitignored or replaced by sample data in this repo.
+- **The system** — the evaluation logic, templates, and tools. Version-controlled, and you don't need to touch it.
+- **Your data** — your profile, catchment criteria, and deal records. Personal, and preserved across updates.
 
-Read [`DATA_CONTRACT.md`](DATA_CONTRACT.md) for the full contract, and [`AGENTS.md`](AGENTS.md) for the precise AI instructions and script reference.
+Read [`DATA_CONTRACT.md`](DATA_CONTRACT.md) for the full contract, and [`AGENTS.md`](AGENTS.md) for precise AI instructions.
 
 ---
 
 ## Methodology Notes
 
-- **SDE multiples** come from `templates/benchmarks.yml` — industry rules-of-thumb (BizBuySell/BizQuest historical, SBA lending norms), directional only.
-- **Local benchmark overlay** (`build-benchmarks.mjs`) derives per-user metro revenue averages (US Census SUSB, firms <20 employees) and state margins (IRS SOI Schedule C) and overrides national references when present.
-- Every evaluation report ends with a **machine-readable YAML footer** (price, SDE, multiple, score, risks, financing fit) for automated parsing.
+- **SDE multiples** come from industry rules-of-thumb (marketplace history, SBA lending norms) — directional, not absolute.
+- **Local bench options** — you can calibrate metro revenue and state margins to your own buying area for more relevant comparisons.
+- **Source transparency** — every report is written so you can see exactly how the score and the multiple were reached.
 
 ---
 
 ## License
 
-Distributed under the [MIT License](LICENSE). This project builds on the BizBuySell and BizQuest marketplace data patterns but is not affiliated with either platform. It is intended for evaluating publicly listed businesses only.
+Distributed under the [MIT License](LICENSE). This project is not affiliated with BizBuySell or BizQuest. It is intended for evaluating publicly listed businesses only.
 
 ---
 
