@@ -43,55 +43,77 @@ Read `data/status-log.tsv`. Parse the tab-delimited rows (after the header) into
 
 ### Step 4 — Summarize the Pipeline
 
-Produce a structured summary:
+Render the summary as **markdown tables** (the CLI displays them as real grid tables) with colored status dots for at-a-glance signals:
+
+| Dot | Status |
+|---|---|
+| 🟢 | Evaluated / Closed |
+| 🔵 | Outreach_Sent / Under_Review / LOI_Submitted |
+| 🟣 | Under_LOI / Due_Diligence / Closing |
+| 🔴 | Passed |
+| 🟡 | Watchlist |
+
+Start with a one-line header, then a summary table:
 
 ```
-BizBuyBot Pipeline Summary — {YYYY-MM-DD}
-=========================================
+## BizBuyBot Pipeline Summary — {YYYY-MM-DD}
 
-Health: {Healthy | N issues}
-Total deals: {N}
-By status:
-  Evaluated:        {N}
-  Outreach_Sent:    {N}
-  Under_Review:     {N}
-  LOI_Submitted:    {N}
-  Under_LOI:        {N}
-  Due_Diligence:    {N}
-  Closing:          {N}
-  Closed:           {N}
-  Passed:           {N}
-  Watchlist:        {N}
+Health: 🟢 Healthy (or 🔴 N issues) · Total: {N} deals · Active: {N}
+```
 
-Active deals (not terminal):
-  {id} | {business} | {status} | {score}/5 | {asking} | {last transition date}
+**By status** table — one row per status with a count (skip zero-count statuses):
 
-Recent status transitions (last 10):
-  {timestamp} | {id} | {from} → {to} | {reason}
+| Status | Deals |
+|---|---|
+| 🟢 Evaluated | 2 |
+| 🔵 Outreach_Sent | 1 |
+| 🟡 Watchlist | 1 |
 
-Average score (active): {avg}/5
-Average multiple (active): {avg}x
+**Active deals** table — one row per non-terminal deal:
+
+| # | Business | Multiple | Score | Status |
+|---|---|---|---|---|
+| 001 | {business} | {multiple}x | {score}/5 | 🟢 {status} |
+| 003 | {business} | {multiple}x | {score}/5 | 🟡 {status} |
+
+**Recent transitions** table — last 10, newest first:
+
+| When | Deal | From → To | Reason |
+|---|---|---|---|
+| {ts} | {id} | {from} → {to} | {reason} |
+
+Close with a footer line:
+
+```
+Average score (active): {avg}/5 · Average multiple (active): {avg}x
 ```
 
 ### Step 5 — Deal-Specific View (if a deal ID is given)
 
-If the user passed a deal ID, show the full record for that deal:
+If the user passed a deal ID, show the full record as a compact table plus its history:
 
 ```
 Deal {NNN} — {Business}
-  Category:     {category}
-  Location:     {location}
-  Asking:       {asking}  | SDE: {sde}  | Multiple: {multiple}
-  Score:        {score}/5  | Status: {status}
-  Report:       {report path}
-  Notes:        {notes}
 
-Status history:
-  {timestamp} | {from} → {to} | {reason}
-  ...
-
-Allowed next statuses: {list from templates/states.yml for the current status}
+| Field | Value |
+|---|---|
+| Category | {category} |
+| Location | {location} |
+| Asking Price | {asking} |
+| Cash Flow (SDE) | {sde} |
+| Multiple | {multiple}x |
+| Score | {score}/5 |
+| Status | {status-dot} {status} |
+| Report | {report path} |
 ```
+
+Status history table (last 10):
+
+| When | From → To | Reason |
+|---|---|---|
+| {timestamp} | {from} → {to} | {reason} |
+
+Then: **Allowed next statuses:** {list from `templates/states.yml` for the current status}.
 
 Read `templates/states.yml` to determine the allowed next statuses for the current state. Do not guess — read the `next` array for the current state.
 
