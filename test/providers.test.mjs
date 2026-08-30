@@ -486,3 +486,62 @@ test('processListings handles null price passing price filter when range is null
   const result = processListings(listings, { dataDir: dir, filters });
   assert.equal(result.added.length, 1);
 });
+
+test('processListings records criteria-rejected listings and re-surfaces them on a broader re-scan', () => {
+  const dir = setupTempDataDir();
+  const laundromat = { title: 'Austin Laundromat', price: 450000, sde: 160000, revenue: 800000, location: 'Austin, TX', description: null, category: 'Laundromat', url: 'https://www.bizbuysell.com/opportunity/status-a', source: 'bizbuysell' };
+  const houston = { title: 'Houston Cleaning Co', price: 300000, sde: 120000, revenue: 400000, location: 'Houston, TX', description: null, category: 'Cleaning', url: 'https://www.bizbuysell.com/opportunity/status-b', source: 'bizbuysell' };
+  const cheap = { title: 'Cheap Biz', price: 50000, sde: 30000, revenue: 100000, location: 'Austin, TX', description: null, category: 'Cleaning', url: 'https://www.bizbuysell.com/opportunity/status-c', source: 'bizbuysell' };
+
+  // Phase 1 — narrow criteria: only cleaning in Austin. Laundromat and HVAC are rejected on criteria.
+  const narrow = { asking_price_range: null, sde_range: null, categories: ['cleaning'], locations: ['Austin'], exclude_keywords: [] };
+  const r1 = processListings([laundromat, houston, cheap], { dataDir: dir, filters: narrow });
+  assert.equal(r1.added.length, 1, 'only the cleaning listing is added in phase 1');
+  assert.equal(r1.added[0].url, cheap.url);
+  assert.equal(r1.skipped.length, 2);
+
+  // Criteria rejections are stored in scan-history as rejected rows (8th column).
+  let hist = fs.readFileSync(path.join(dir, 'scan-history.tsv'), 'utf-8');
+  assert.ok(hist.includes(laundromat.url), 'category-rejected listing recorded');
+  assert.ok(hist.includes(houston.url), 'location-rejected listing recorded');
+  assert.ok(hist.includes('\trejection\t') || hist.includes('\trejection\n'), 'rejection column added to header');
+  const rejA = hist.split('\n').find((l) => l.includes(laundromat.url));
+  assert.ok(rejA.split('\t').length >= 8 && rejA.endsWith('category'), 'category rejection key stored');
+  const rejB = hist.split('\n').find((l) => l.includes(houston.url));
+  assert.ok(rejB.endsWith('location'), 'location rejection key stored');
+
+  // Phase 2 — broader criteria: no category or location limits.
+  const broad = { asking_price_range: null, sde_range: null, categories: [], locations: [], exclude_keywords: [] };
+  const r2 = processListings([laundromat, houston, cheap], { dataDir: dir, filters: broad });
+  assert.equal(r2.added.length, 2, 'previously rejected listings re-surface once criteria broaden');
+  assert.ok(r2.added.some((l) => l.url === laundromat.url), 'category-rejected listing re-added');
+  assert.ok(r2.added.some((l) => l.url === houston.url), 'location-rejected listing re-added');
+  assert.ok(!r2.added.some((l) => l.url === cheap.url), 'listing already accepted in phase 1 stays a duplicate');
+  const pipeline = fs.readFileSync(path.join(dir, 'pipeline.md'), 'utf-8');
+  assert.ok(pipeline.includes(laundromat.url), 'formerly rejected listing lands in pipeline');
+  hist = fs.readFileSync(path.join(dir, 'scan-history.tsv'), 'utf-8');
+  assert.ok(!hist.split('\n').some((l) => l.includes(laundromat.url) && l.endsWith('category')), 'rejected row upgraded to accepted');
+
+  // Phase 3 — same broad criteria again: everything is now a duplicate, nothing re-added.
+  const r3 = processListings([laundromat, houston, cheap], { dataDir: dir, filters: broad });
+  assert.equal(r3.added.length, 0, 'stabilized — no re-adds after history upgrade');
+  const pipelineAfter = fs.readFileSync(path.join(dir, 'pipeline.md'), 'utf-8');
+  assert.equal(
+    (pipelineAfter.match(new RegExp(laundromat.url, 'g')) || []).length,
+    1,
+    'pipeline never lists the same url twice',
+  );
+});
+
+test('processListings does NOT record price/exclude criteria rejections in scan-history', () => {
+  const dir = setupTempDataDir();
+  const cheap = { title: 'Cheap Biz', price: 50000, sde: 30000, revenue: 100000, location: 'Austin, TX', description: null, category: 'Cleaning', url: 'https://www.bizbuysell.com/opportunity/cheap-price', source: 'bizbuysell' };
+  const distressed = { title: 'Distressed Cleaning', price: 450000, sde: 160000, revenue: 800000, location: 'Austin, TX', description: 'distressed sale', category: 'Cleaning', url: 'https://www.bizbuysell.com/opportunity/distressed', source: 'bizbuysell' };
+  const filters = { asking_price_range: { min: 100000, max: 1000000 }, sde_range: null, categories: ['cleaning'], exclude_keywords: ['distressed'] };
+  const result = processListings([cheap, distressed], { dataDir: dir, filters });
+  assert.equal(result.added.length, 0);
+  const hist = fs.readFileSync(path.join(dir, 'scan-history.tsv'), 'utf-8');
+  assert.ok(!hist.includes(cheap.url), 'price-rejected listing not recorded (offer-driven)');
+  assert.ok(!hist.includes(distressed.url), 'exclude-keyword listing not recorded (offer-driven)');
+  assert.equal(hist.trim().split('\n').length, 1, 'history unchanged (header only)');
+});

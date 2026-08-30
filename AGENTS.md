@@ -49,7 +49,7 @@ BizBuyBot enforces a strict **two-layer separation** between system code and use
 | `portals.yml` | Active portal search criteria. Gitignored. |
 | `data/acquisitions.md` | Canonical deal tracker — one row per evaluated business. |
 | `data/pipeline.md` | Scrape inbox — raw leads pending evaluation. |
-| `data/scan-history.tsv` | Deduplication index for scraped listings. |
+| `data/scan-history.tsv` | Deduplication index for scraped listings (criteria-rejected rows resurface on re-scan). |
 | `data/status-log.tsv` | Audit ledger of all deal status transitions. |
 | `data/local-benchmarks.yml` | Generated per-user benchmark overlay (gitignored). |
 | `reports/*.md` | Generated deal reports and artifacts. |

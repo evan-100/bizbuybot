@@ -62,37 +62,10 @@ function passesFilters(listing, filters) {
   return true;
 }
 
-function readExistingUrls(dataDir) {
-  const tsvPath = path.join(dataDir, 'scan-history.tsv');
-  const urls = new Set();
-  if (!fs.existsSync(tsvPath)) return urls;
-  const content = fs.readFileSync(tsvPath, 'utf-8');
-  const lines = content.trim().split('\n');
-  for (let i = 1; i < lines.length; i++) {
-    const fields = lines[i].split('\t');
-    if (fields[1]) urls.add(fields[1]);
-  }
-  return urls;
-}
-
 function formatPipelineLine(listing) {
   const loc = listing.location || 'Unknown';
   const pricePart = listing.price !== null ? ` | Asking: ${listing.price}` : '';
   return `- [ ] ${listing.url} | ${listing.title} | ${loc}${pricePart}`;
-}
-
-function formatHistoryRow(listing) {
-  const id = slugify(listing.url);
-  const today = getLocalToday();
-  return [
-    id,
-    listing.url,
-    listing.title || '',
-    listing.price !== null ? String(listing.price) : '',
-    listing.sde !== null ? String(listing.sde) : '',
-    listing.source || '',
-    today,
-  ].join('\t');
 }
 
 function writePipelineBatch(dataDir, newLines) {
@@ -111,12 +84,6 @@ function writePipelineBatch(dataDir, newLines) {
   fs.writeFileSync(pipelinePath, content);
 }
 
-function writeHistoryBatch(dataDir, newRows) {
-  const tsvPath = path.join(dataDir, 'scan-history.tsv');
-  const content = fs.readFileSync(tsvPath, 'utf-8');
-  fs.writeFileSync(tsvPath, content.trimEnd() + '\n' + newRows.join('\n') + '\n');
-}
-
 function firstFilterFailure(listing, filters) {
   filters = filters || {};
   if (!passesPriceFilter(listing.price, filters.asking_price_range)) return 'asking price out of range';
@@ -127,36 +94,138 @@ function firstFilterFailure(listing, filters) {
   return null;
 }
 
+function isRejectedRow(row) {
+  const fields = row.split('\t');
+  return fields.length >= 8 && fields[1] && fields[7] !== '';
+}
+
+function stripTrailingTabs(row) {
+  return row.replace(/\t+$/, '').trimEnd();
+}
+
+function rejectedReasonKey(reason) {
+  // Only "not in preferred list" rejections are profile/criteria-driven — the same URL
+  // becomes a real match once the buyer's criteria change, so we persist them as rejected
+  // rows and surface them on re-scan. Hard rejections (out of range / exclude keyword)
+  // tie the URL to the OFFER, not the profile, and must NOT be stored.
+  if (reason === 'category not in preferred list') return 'category';
+  if (reason === 'location not in preferred list') return 'location';
+  return null;
+}
+
+function readHistory(dataDir) {
+  const tsvPath = path.join(dataDir, 'scan-history.tsv');
+  const result = { header: '', body: [] };
+  if (!fs.existsSync(tsvPath)) return result;
+  const content = fs.readFileSync(tsvPath, 'utf-8');
+  const lines = content.trim().split('\n');
+  if (lines.length === 0) return result;
+  result.header = lines[0];
+  result.body = lines.slice(1).map(stripTrailingTabs).filter((l) => l.trim() !== '');
+  return result;
+}
+
+function readExistingRows(dataDir) {
+  // Map of url -> { rejected: boolean } for dedup decisions. Rejected rows still exist so
+  // re-scans with broader criteria can re-surface them, but they don't block re-adding.
+  const { body } = readHistory(dataDir);
+  const map = new Map();
+  for (const row of body) {
+    const fields = row.split('\t');
+    if (fields[1]) map.set(fields[1], { rejected: isRejectedRow(row) });
+  }
+  return map;
+}
+
+function writeHistory(dataDir, { header, body }) {
+  const tsvPath = path.join(dataDir, 'scan-history.tsv');
+  let h = header;
+  if (!h || !h.startsWith('listing_id')) {
+    h = 'listing_id\turl\ttitle\tasking_price\tsde\tsource\tfirst_seen\trejection';
+  }
+  if (h.startsWith('listing_id') && !h.includes('rejection')) {
+    h = h.replace(/\t+$/, '') + '\trejection';
+  }
+  fs.writeFileSync(tsvPath, h + '\n' + body.join('\n') + '\n');
+}
+
+function compactHistory(rows) {
+  // One row per URL, scan-order wins. A rejected row is superseded by any later accepted
+  // row (an accepted listing is never re-proposed), and a later rejected row replaces an
+  // earlier one. This keeps history linear and re-scans free of duplicates.
+  const byUrl = new Map();
+  for (const row of rows) {
+    const fields = row.split('\t');
+    const url = fields[1];
+    if (!url) continue;
+    const prev = byUrl.get(url);
+    if (!prev || (isRejectedRow(prev) && !isRejectedRow(row))) byUrl.set(url, row);
+  }
+  return [...byUrl.values()];
+}
+
+function formatHistoryRow(listing) {
+  const id = slugify(listing.url);
+  const today = getLocalToday();
+  return [
+    id,
+    listing.url,
+    listing.title || '',
+    listing.price !== null ? String(listing.price) : '',
+    listing.sde !== null ? String(listing.sde) : '',
+    listing.source || '',
+    today,
+  ].join('\t');
+}
+
+function formatRejectedRow(listing, rejectionKey) {
+  const id = slugify(listing.url);
+  const today = getLocalToday();
+  return [id, listing.url, listing.title || '', '', '', listing.source || '', today, rejectionKey].join('\t');
+}
+
 export function processListings(listings, { dataDir, filters }) {
   const added = [];
   const skipped = [];
 
-  const existingUrls = readExistingUrls(dataDir);
+  const { header, body } = readHistory(dataDir);
+  const existing = readExistingRows(dataDir);
   const seenInBatch = new Set();
   const newPipelineLines = [];
-  const newHistoryRows = [];
+  const acceptedRows = [];
+  const rejectedRows = [];
 
   for (const listing of listings) {
     const filterFailure = firstFilterFailure(listing, filters);
     if (filterFailure) {
       skipped.push({ ...listing, reason: filterFailure });
+      const rejectionKey = rejectedReasonKey(filterFailure);
+      if (rejectionKey) rejectedRows.push(formatRejectedRow(listing, rejectionKey));
       continue;
     }
-    if (existingUrls.has(listing.url) || seenInBatch.has(listing.url)) {
+    const prior = existing.get(listing.url);
+    if (prior && !prior.rejected) {
+      skipped.push({ ...listing, reason: 'duplicate (already scanned)' });
+      continue;
+    }
+    if (seenInBatch.has(listing.url)) {
       skipped.push({ ...listing, reason: 'duplicate (already scanned)' });
       continue;
     }
     seenInBatch.add(listing.url);
     newPipelineLines.push(formatPipelineLine(listing));
-    newHistoryRows.push(formatHistoryRow(listing));
+    acceptedRows.push(formatHistoryRow(listing));
     added.push(listing);
   }
 
   if (newPipelineLines.length > 0) {
     writePipelineBatch(dataDir, newPipelineLines);
   }
-  if (newHistoryRows.length > 0) {
-    writeHistoryBatch(dataDir, newHistoryRows);
+
+  const newRows = [...acceptedRows, ...rejectedRows];
+  if (newRows.length > 0) {
+    const updated = compactHistory([...body, ...newRows]);
+    writeHistory(dataDir, { header, body: updated });
   }
 
   return { added, skipped };

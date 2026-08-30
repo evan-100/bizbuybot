@@ -28,9 +28,9 @@ It:
 - Reads `portals.yml` for search queries and filters.
 - Uses Playwright to fetch search engine results and listing pages.
 - Parses listings via the registered providers (`providers/bizbuysell.mjs`, `providers/bizquest.mjs`).
-- Deduplicates against `data/scan-history.tsv` (skips listings already seen).
+- Deduplicates against `data/scan-history.tsv` (skips listings already added to the pipeline).
 - Appends new listings to `data/pipeline.md` under `## Pending`.
-- Appends new rows to `data/scan-history.tsv`.
+- Appends new rows to `data/scan-history.tsv`. Listings rejected on **profile-driven** filters (category / location not in preferred list) are recorded with a `rejection` marker so they resurface once the buyer's criteria change; offer-driven rejections (price/SDE range, exclude keywords) are not recorded.
 - Prints a summary of new vs. skipped listings.
 
 The `scan` action runs all queries configured in `portals.yml`. It does not accept a single-URL argument — to evaluate a specific listing, pass its URL or pasted text directly to `/bizbuybot` (the `modes/auto-pipeline.md` flow), which fetches and parses the listing via the local browser.

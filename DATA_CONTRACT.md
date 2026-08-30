@@ -93,8 +93,11 @@ Tab-delimited deduplication index for scraped listings. One row per unique listi
 **Columns (TSV header):**
 
 ```
-listing_id	url	title	asking_price	sde	source	first_seen
+listing_id	url	title	asking_price	sde	source	first_seen	rejection
 ```
+
+- `rejection` is empty for listings added to the pipeline. When set (`category` or `location`), the listing failed a **profile-driven** filter (not in preferred list) — that row is recorded so a later scan with broader criteria can re-surface it. Listings rejected on offer-driven criteria (price/SDE out of range, exclude keyword) are never recorded.
+- Rejected rows are upgraded in place (same URL) to accepted rows when a later scan's criteria accept the listing. A listing never appears twice for the same URL.
 
 ### `data/status-log.tsv`
 
@@ -127,4 +130,4 @@ Every evaluation report terminates with a machine-readable YAML metadata footer 
 2. **User data is append-mostly.** The canonical tracker (`acquisitions.md`) and pipeline (`pipeline.md`) are appended to, not rewritten. Status transitions update the `Status` column in-place but are always logged to `status-log.tsv`.
 3. **Report IDs are immutable.** Once a deal ID is assigned, it never changes.
 4. **All status transitions are auditable.** Every change to a deal's status must produce a `status-log.tsv` entry.
-5. **Deduplication is enforced.** No listing may appear twice in `scan-history.tsv`; `listing_id` is the unique key.
+5. **Deduplication is enforced.** No listing may appear twice in `scan-history.tsv`; `listing_id` is the unique key. A rejected row (criteria-driven) is superseded by the accepted row for the same URL once a later scan accepts it.
