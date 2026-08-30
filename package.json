@@ -9,7 +9,12 @@
     "scan": "node scan.mjs",
     "verify": "node verify-pipeline.mjs",
     "export": "node export-pipeline.mjs",
-    "dashboard": "node dashboard.mjs"
+    "export:json": "node export-pipeline.mjs --format=json",
+    "dashboard": "node dashboard.mjs",
+    "benchmarks": "node build-benchmarks.mjs",
+    "fetch": "node fetch-listing.mjs",
+    "add": "node add-entry.mjs",
+    "status": "node set-status.mjs"
   },
   "dependencies": {
     "dotenv": "^17.0.0",

@@ -10,4 +10,4 @@ Canonical deal tracker. One row per evaluated business.
 
 ## Sample Data Notice
 
-The rows above are **fictional sample data** used to demonstrate the tracker, dashboard, and reports. Replace them with your own deals via `node add-entry.mjs` — never hand-edit this file.
+The rows above are **fictional sample data** used to demonstrate the tracker, dashboard, and reports. Replace them with your own deals via the `add` action — never hand-edit this file.

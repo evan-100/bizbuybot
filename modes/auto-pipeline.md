@@ -18,15 +18,12 @@
 **IMPORTANT: BizBuySell and BizQuest are protected by Akamai Bot Manager. Do NOT use `webfetch` — it will be blocked with 403 Access Denied.**
 
 - If a **URL** is provided (BizBuySell or BizQuest):
-  - Run this command from the project root to fetch the listing via local Playwright:
-    ```bash
-    node fetch-listing.mjs "<url>" --json
-    ```
-  - The script uses a real browser engine (Firefox/WebKit) that bypasses Akamai anti-bot protection.
+  - Use the `fetch` action with the URL (runs the local Playwright fetcher).
+  - It uses a real browser engine (Firefox/WebKit) that bypasses Akamai anti-bot protection.
   - Parse the JSON output: `parsed` contains structured fields (`title`, `price`, `sde`, `revenue`, `location`, `category`, `description`), and `text` contains the full rendered page text.
   - Use the `text` field for additional details not in `parsed` (inventory, FF&E, real estate, lease terms, employees, reason for selling).
   - Note the `source` as the marketplace (BizBuySell, BizQuest, or other) based on the URL domain.
-  - If `fetch-listing.mjs` fails (returns null or errors), ask the user to paste the listing text directly.
+  - If `fetch` fails (returns null or errors), ask the user to paste the listing text directly.
 - If **pasted text** is provided: parse the same fields directly from the text.
 
 Extract and normalize into a listing object with these fields (use `null` if unavailable):
@@ -49,30 +46,20 @@ Follow `modes/evaluate.md` exactly:
 6. Write the report to `reports/{NNN}-{slug}-{date}.md`, where:
    - `{NNN}` = the deal ID from Step 2.
    - `{slug}` = a URL-safe slug of the business name (lowercase, hyphenated, ≤60 chars).
-   - `{date}` = today's date in `YYYY-MM-DD` (use `node -e "console.log(new Date().toISOString().slice(0,10))"` or the AI CLI's date).
+   - `{date}` = today's date in `YYYY-MM-DD` (use the current system date).
 
 ### Step 4 — Add the Tracker Entry
 
-Run the deterministic `add-entry.mjs` script to append the deal to `data/acquisitions.md`:
-
-```bash
-node add-entry.mjs \
-  --business="<business_name>" \
-  --category="<category>" \
-  --location="<location>" \
-  --price=<asking_price> \
-  --sde=<sde> \
-  --score=<global_score> \
-  --status="Evaluated" \
-  --report="reports/{NNN}-{slug}-{date}.md" \
-  --notes="<one-line summary from Block A TL;DR>"
-```
+Use the `add` action to append the deal to `data/acquisitions.md`. Pass the parsed fields, including:
+- business name, category, location
+- asking price and SDE (plain numbers)
+- the global score from Step 3
+- status `Evaluated`
+- the report path from Step 3
+- a one-line notes summary from the Block A TL;DR
 
 Notes:
-- `--score` is the holistic global score as a decimal (e.g., `4.4`).
-- `--price` and `--sde` are integers (no `$` or commas).
-- `--report` is the relative path to the evaluation report from Step 3.
-- The script auto-assigns the ID and computes the multiple. Verify the ID matches Step 2 — if the tracker already advanced, re-read the max ID and adjust.
+- It auto-assigns the ID and computes the multiple. Verify the ID matches Step 2 — if the tracker already advanced, re-read the max ID and adjust.
 
 ### Step 5 — Mark the Pipeline Entry as Processed (if applicable)
 

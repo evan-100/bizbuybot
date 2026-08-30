@@ -80,11 +80,7 @@ Write the draft to `reports/{NNN}-outreach.md` (no slug or date — just the ID,
 
 ### Step 6 — Update Deal Status (recommended)
 
-If the buyer sends the outreach, transition the deal status:
-
-```bash
-node set-status.mjs {NNN} Outreach_Sent --reason="Initial outreach email sent to broker/seller"
-```
+If the buyer sends the outreach, offer to update the deal's status with the `status` action (deal ID, new status, reason).
 
 This requires the current status to be `Evaluated` or `Watchlist` (states whose `next` includes `Outreach_Sent`). If the current status does not allow this transition, skip and note the required prior state in the terminal summary.
 
@@ -98,7 +94,7 @@ BizBuyBot Outreach Draft — {NNN}
   Recipient:  {broker name or [BROKER NAME]}
   Subject:    Inquiry — {name} ({location}) — Serious Buyer
   Output:     reports/{NNN}-outreach.md
-  Next: Review, personalize contact details, and send. Run `node set-status.mjs {NNN} Outreach_Sent --reason="..."` after sending.
+  Next: Review, personalize contact details, and send. Then tell me to mark the deal as outreach sent.
 ```
 
 ---

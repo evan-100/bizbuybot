@@ -66,93 +66,33 @@ BizBuyBot enforces a strict **two-layer separation** between system code and use
 
 Never modify system-layer files from user actions. Never hand-write data that a deterministic script manages.
 
-## Deterministic Scripts
+## Actions
 
-These scripts are the canonical writers for their respective data files. Always use them instead of hand-editing.
+Keep it simple for the user. Never recommend a full `node *.mjs` or `npm run ...` command — use the short action names below, and run them yourself when that's useful and safe.
 
-### `add-entry.mjs`
+| Action | What it does |
+|---|---|
+| `add` | Append a deal to the tracker (auto-assigns ID, computes multiple) |
+| `status` | Transition a deal to a new status (validated + audited) |
+| `verify` | Check pipeline integrity (IDs, dates, statuses, multiples, log rows) |
+| `export` / `export json` | Print the tracker as CSV (default) or JSON |
+| `scan` | Scrape marketplaces → dedupe → append new leads |
+| `dashboard` | Open the browser pipeline dashboard |
+| `doctor` | Check setup health |
+| `benchmarks` | Recalibrate local benchmarks (metro revenue, state margins) |
+| `fetch` | Fetch a listing page via the local browser |
 
-Appends a deal to `data/acquisitions.md`. Auto-assigns the next sequential ID and computes the SDE multiple.
-
-```bash
-node add-entry.mjs \
-  --business="<name>" \
-  --category="<category>" \
-  --location="<city, ST>" \
-  --price=<asking_price> \
-  --sde=<sde> \
-  [--score=<1.0-5.0>] \
-  [--status="Evaluated"] \
-  [--report="<path>"] \
-  [--notes="<text>"] \
-  [--data-dir=<path>]
-```
-
-### `set-status.mjs`
-
-Transitions a deal to a new status. Validates the transition against `templates/states.yml` and logs to `data/status-log.tsv`.
-
-```bash
-node set-status.mjs <id> <new_status> [--reason="..."] [--data-dir=<path>]
-```
-
-### `verify-pipeline.mjs`
-
-Validates pipeline integrity: column counts, sequential IDs, date formats, status validity, multiple consistency, and status-log row integrity.
-
-```bash
-node verify-pipeline.mjs [--data-dir=<path>]
-```
-
-### `export-pipeline.mjs`
-
-Exports the deal tracker to CSV or JSON (printed to stdout).
-
-```bash
-node export-pipeline.mjs --format=csv|json [--data-dir=<path>]
-```
-
-### `scan.mjs`
-
-Scrapes marketplace search results, applies filters, deduplicates, and appends new listings to `data/pipeline.md` and `data/scan-history.tsv`.
-
-```bash
-node scan.mjs [--data-dir=<path>]
-```
-
-### `dashboard.mjs`
-
-Serves the browser dashboard for the deal pipeline at `http://localhost:4826`. Reads only from `data/acquisitions.md` and serves linked reports read-only. Opens the browser automatically unless `--no-open` is passed.
-
-```bash
-node dashboard.mjs [--port=<port>] [--no-open] [--data-dir=<path>]
-```
-
-When launched by an agent, start it detached (`nohup node dashboard.mjs --no-open ... &`) — never in the foreground.
-
-### `doctor.mjs`
-
-Checks setup health: verifies required directories, system files, data files, and dependencies exist.
-
-```bash
-node doctor.mjs [--root=<path>]
-```
-
-### `build-benchmarks.mjs`
-
-Derives per-user local benchmarks (metro revenue, state margins) into `data/local-benchmarks.yml` from Census SUSB + IRS SOI data. Opt-in at setup.
-
-```bash
-node build-benchmarks.mjs [--force] [--dry-run] [--data-dir=<path>]
-```
+For the args-heavy ones, describe them in plain words instead of flags:
+- `add` a deal → "Add a deal: business name, category, location, asking price, cash flow." Build the call from the listing you parsed.
+- `status` a deal → "Update status: the deal ID, the new status, and a short reason." Use a status from `templates/states.yml`.
+- `fetch` a listing → pass the listing URL.
 
 ## Onboarding
 
-To set up BizBuyBot for a new buyer:
+Start a new buyer the friction-free way instead of asking them to edit files:
 
-1. Copy `config/profile.example.yml` → `config/profile.yml` and fill in your financial capacity, skills, geography, and deal criteria.
-2. Copy `templates/portals.example.yml` → `portals.yml` (at the project root) and customize search queries and filters.
-3. Copy `buyer-profile.example.md` → `buyer-profile.md` (at the project root) and customize with your free-form investment thesis and background narrative.
-4. Run `npm install` to install dependencies (playwright, js-yaml, dotenv).
-5. Run `npm run doctor` to verify the setup is complete.
-6. Run `npx playwright install chromium` if you plan to use the scan feature.
+1. Ask them to run `npm install` in the repo.
+2. Run `doctor` — if anything's missing, fix or report it.
+3. Tell them to invoke `/bizbuybot setup` in their AI CLI — the interview writes their profile, portals, and thesis for them.
+4. Offer `benchmarks` during setup if they want local calibration.
+5. Mention `scan` needs Chromium: `npx playwright install chromium`.

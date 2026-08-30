@@ -94,7 +94,7 @@ BizBuyBot DD Checklist — {NNN}
   Priority items: {count} (from flagged risks)
   Total items:  {count}
   Output:       reports/{NNN}-dd-checklist.md
-  Next: Use this checklist during due diligence. Run `node set-status.mjs {NNN} Due_Diligence --reason="DD commenced"` when DD formally begins.
+  Next: Use this checklist during due diligence. Tell me to mark the deal as in due diligence when DD formally begins.
 ```
 
 ---

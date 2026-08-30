@@ -22,13 +22,9 @@ To evaluate a specific listing URL, use `/bizbuybot <URL>` (the `modes/auto-pipe
 
 ### Step 2 — Run the Scanner
 
-Run the deterministic scanner from the project root:
+Run the `scan` action from the project root (this runs the scanner for all queries in `portals.yml`).
 
-```bash
-node scan.mjs
-```
-
-This script:
+It:
 - Reads `portals.yml` for search queries and filters.
 - Uses Playwright to fetch search engine results and listing pages.
 - Parses listings via the registered providers (`providers/bizbuysell.mjs`, `providers/bizquest.mjs`).
@@ -37,13 +33,11 @@ This script:
 - Appends new rows to `data/scan-history.tsv`.
 - Prints a summary of new vs. skipped listings.
 
-The `--data-dir=<path>` flag is supported (defaults to `data/`).
-
-`scan.mjs` runs all queries configured in `portals.yml`. It does not accept a single-URL argument — to evaluate a specific listing, pass its URL or pasted text directly to `/bizbuybot` (the `modes/auto-pipeline.md` flow), which fetches and parses the listing via the AI CLI's web fetch capability.
+The `scan` action runs all queries configured in `portals.yml`. It does not accept a single-URL argument — to evaluate a specific listing, pass its URL or pasted text directly to `/bizbuybot` (the `modes/auto-pipeline.md` flow), which fetches and parses the listing via the local browser.
 
 ### Step 3 — Review the Scanner Output
 
-`scan.mjs` prints a summary table (date, queries, added/skipped/errors) plus one row per new listing with Asking / SDE / Multiple / Location / Title / Source, followed by skip reasons and errors. Read it carefully.
+`scan` prints a summary table (date, queries, added/skipped/errors) plus one row per new listing with Asking / SDE / Multiple / Location / Title / Source, followed by skip reasons and errors. Read it carefully.
 
 ### Step 4 — Walk the User Through the Findings
 
@@ -91,7 +85,7 @@ If the user requests bulk evaluation, run `modes/auto-pipeline.md` for each top 
 
 ## Notes
 
-- `scan.mjs` is deterministic and uses Playwright. If Playwright is not installed, the script will fail with a clear error — instruct the user to run `npm install` and `npx playwright install chromium`.
+- `scan` is deterministic and uses Playwright. If Playwright is not installed, the action will fail with a clear error — tell the user setup is incomplete and offer to install it (`npm install`, then the Playwright Chromium step).
 - The scanner does not evaluate listings. Evaluation is a separate LLM step (via `modes/evaluate.md` or `modes/auto-pipeline.md`).
 - If a provider fails, the scanner continues with the other providers and reports the failure in the summary.
 - Do not modify `data/scan-history.tsv` or `data/pipeline.md` manually — the script is the only writer.

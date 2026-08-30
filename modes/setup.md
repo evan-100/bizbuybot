@@ -77,11 +77,7 @@ Normalization rules:
 - `involvement_level` → exactly one of `full-time owner-operator` | `semi-absentee` | `investor`.
 - Derive sensible defaults from their answers: `max_dscr_target` → `1.4` unless they say stricter; `target_sde_range.min` ≥ their stated minimum cash need; `max_multiple` → `4.0` unless they cap it lower; `min_cash_flow_margin` → `0.15`.
 
-Before writing, validate:
-
-```bash
-node -e "const y=require('js-yaml'),f=require('fs');y.load(f.readFileSync('config/profile.yml','utf8'));console.log('profile.yml valid')"
-```
+Before writing, validate the generated YAML parses cleanly (you can run a quick parse check locally).
 
 Then show the user the generated file and ask them to confirm (or adjust) before moving on.
 
@@ -91,7 +87,7 @@ After writing `config/profile.yml`, offer calibration:
 
 > *"Want me to calibrate benchmarks to your metro? This downloads ~50MB of Census data once (cached) plus a small IRS file, so valuations use Orlando-area figures instead of national averages."*
 
-- **Yes** → run `node build-benchmarks.mjs`, show the resulting per-category table (localized vs fell-back, with reasons), mention re-running refreshes it.
+- **Yes** → run the `benchmarks` action, show the resulting per-category table (localized vs fell-back, with reasons), mention re-running refreshes it.
 - **No** → skip; note in Step 7 summary that national defaults are active.
 - **Edit Mode:** if geography answers changed, offer re-running this step.
 
@@ -119,7 +115,7 @@ Read `config/profile.yml`. Present current values grouped (Identity & Money / Sk
 
 ## Step 7 — Finish
 
-Run `node doctor.mjs` and report: warnings should now be cleared (or explain any that remain). Close with:
+Run the `doctor` action and report: warnings should now be cleared (or explain any that remain). Close with:
 
 ```
 BizBuyBot Setup — Complete

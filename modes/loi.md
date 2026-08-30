@@ -65,11 +65,7 @@ Write the filled LOI to `reports/{NNN}-loi.md` (note: no slug or date in this fi
 
 ### Step 7 — Update the Deal Status (optional, recommended)
 
-If the buyer intends to submit this LOI, transition the deal status:
-
-```bash
-node set-status.mjs {NNN} LOI_Submitted --reason="LOI drafted and ready for submission"
-```
+If the buyer intends to submit this LOI, offer to update the deal's status with the `status` action (deal ID, new status, reason).
 
 This requires the current status to be `Under_Review` (or a state whose `next` includes `LOI_Submitted`). If the current status does not allow this transition, skip the status update and note the required prior state in the terminal summary.
 
@@ -86,7 +82,7 @@ BizBuyBot LOI Draft — {NNN}
   EMD:             {emd amount}
   Exclusivity:     {exclusivity days} days
   Output:          reports/{NNN}-loi.md
-  Next: Review with counsel, then submit. Run `node set-status.mjs {NNN} LOI_Submitted --reason="..."` after submission.
+  Next: Review with counsel, then submit. Then tell me to mark the deal as LOI submitted.
 ```
 
 ---

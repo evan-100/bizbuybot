@@ -15,13 +15,13 @@
 
 ### Step 1 — Run the Health Check
 
-Run the deterministic pipeline verifier:
+Run the `verify` action:
 
 ```bash
-node verify-pipeline.mjs
+npm run verify
 ```
 
-This script checks:
+This checks:
 - Column count consistency in `data/acquisitions.md`.
 - Sequential, non-duplicate deal IDs.
 - Valid date format (`YYYY-MM-DD`).
@@ -97,17 +97,13 @@ Read `templates/states.yml` to determine the allowed next statuses for the curre
 
 ### Step 6 — Guide Status Updates
 
-If the user wants to update a deal's status, guide them through the deterministic command:
-
-```bash
-node set-status.mjs <id> <new_status> --reason="<reason>"
-```
+If the user wants to update a deal's status, use the `status` action. Describe it in plain words — the deal ID, the new status, and a short reason — never a full command.
 
 Rules:
-- `<new_status>` must be in the `next` array for the current state in `templates/states.yml`.
-- The script validates the transition and writes to `data/status-log.tsv` automatically.
-- If the transition is invalid, the script exits with an error listing allowed transitions — relay this to the user.
-- Always include a `--reason` for auditability.
+- The new status must be in the `next` array for the current state in `templates/states.yml`.
+- The action validates the transition and writes to `data/status-log.tsv` automatically.
+- If the transition is invalid, it exits with an error listing allowed transitions — relay this to the user.
+- Always include a reason for auditability.
 
 Common transitions:
 - `Evaluated → Outreach_Sent` (after sending the outreach draft)
@@ -123,14 +119,7 @@ Common transitions:
 
 ### Step 7 — Export (if requested)
 
-If the user wants to export the pipeline:
-
-```bash
-node export-pipeline.mjs --format=csv
-node export-pipeline.mjs --format=json
-```
-
-This prints to stdout. Instruct the user to redirect to a file if needed (e.g., `node export-pipeline.mjs --format=csv > pipeline-export.csv`).
+If the user wants to export the pipeline, run the `export` action. Offer CSV by default, JSON on request. The output prints to stdout — capture it for the user (write it to a file if they want one).
 
 ### Step 8 — Terminal Summary
 
@@ -138,9 +127,9 @@ Print the pipeline summary from Step 4 (or the deal-specific view from Step 5) f
 
 ```
 Next actions:
-  - To update a status: `node set-status.mjs <id> <new_status> --reason="..."`
-  - To export: `node export-pipeline.mjs --format=csv|json`
-  - To re-verify: `node verify-pipeline.mjs`
+  - To update a status: tell me the deal ID and new status (e.g., "mark 003 as Passed")
+  - To export: tell me to export (CSV or JSON)
+  - To re-verify: tell me to verify the pipeline
   - To evaluate a new listing: `/bizbuybot <URL>` or `/bizbuybot evaluate`
 ```
 
@@ -148,9 +137,9 @@ Next actions:
 
 ## Notes
 
-- This mode is read-mostly. The only writes are via `set-status.mjs` (which the user must authorize) and `export-pipeline.mjs` (which writes to stdout, not a file).
-- Do not modify `data/acquisitions.md` or `data/status-log.tsv` directly — always use the deterministic scripts.
-- If `verify-pipeline.mjs` reports issues, prioritize fixing them before any status updates. Common fixes:
-  - Invalid status: run `node set-status.mjs <id> <valid_status>` (the script will reject invalid targets).
-  - Multiple mismatch: this usually means the row was hand-edited; recompute and correct the `Multiple` column, or re-run `add-entry.mjs` (do not hand-edit unless unavoidable).
+- This mode is read-mostly. The only writes are via the `status` action (which the user must authorize) and `export` (which prints to stdout, not a file).
+- Do not modify `data/acquisitions.md` or `data/status-log.tsv` directly — always use the `status`/`add` actions.
+- If `verify` reports issues, prioritize fixing them before any status updates. Common fixes:
+  - Invalid status: use `status` with a valid target (the action will reject invalid targets).
+  - Multiple mismatch: this usually means the row was hand-edited; recompute and correct the `Multiple` column, or re-`add` the entry (do not hand-edit unless unavoidable).
   - ID sequence gap: indicates a deleted row; advise the user on whether to renumber (risky — see `DATA_CONTRACT.md` "Report IDs are immutable") or leave the gap.
