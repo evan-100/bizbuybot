@@ -44,9 +44,9 @@ deal_criteria:
     min: 200000
     max: 750000
   target_sde_range:
-    min: 75000
+    min: 75000      # Setup proposes min ≈ 50% of the typical SDE for your chosen industries; guardrailed so it never filters out a whole category (see templates/benchmarks.yml)
     max: 300000
-  max_multiple: 4.0         # Maximum SDE multiple you'll consider
-  min_cash_flow_margin: 0.15  # Minimum SDE as % of gross revenue
+  max_multiple: 4.0         # Maximum SDE multiple you'll consider (setup proposes the top category's sde_multiple_max)
+  min_cash_flow_margin: 0.15  # Minimum SDE as % of gross revenue (setup proposes the category's typical_sde_margin low end)
   requires_real_estate: false  # Must the deal include owned real estate?
   max_employee_count: 25     # Maximum number of employees

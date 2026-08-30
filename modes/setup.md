@@ -45,10 +45,18 @@ Ask questions **one group at a time**, in plain language. Accept loose answers (
 10. Preferred states or metros?
 11. Open to relocating for the right deal? Max commute if local?
 
-**Group 4 — Deal Criteria**
+**Typical values (measure first).** Before asking Group 4, load `templates/benchmarks.yml` and match the industries the user named (via `keywords`; fall back to `General Main Street` for anything unrecognized). Use the matched entries' `sde_benchmark.avg`, `sde_multiple_min/max`, `revenue_benchmark.avg`, and `typical_sde_margin` to ground every "typical / recommended" below. The benchmarks file is the ONLY source — never invent a number. Useful derived figures per matched category:
+
+- **Typical SDE** = `sde_benchmark.avg` (e.g. Laundromat ~$82k, HVAC ~$138k, Commercial Cleaning ~$86k).
+- **Recommended SDE floor** = 50% of the lowest matching category's typical SDE (≈ keeps floor from excluding a whole category while still cutting junk). Round to a clean number.
+- **Typical asking band** = `sde_benchmark.avg` × `sde_multiple_min` → `sde_benchmark.avg` × `sde_multiple_max` (e.g. Laundromat ~$246k–$369k).
+- **Typical multiple band** = `sde_multiple_min` → `sde_multiple_max` for the category.
+- **Typical margin** = `typical_sde_margin` (e.g. Car Wash 25–35%).
+
+**Group 4 — Deal Criteria** (offer typicals on each question; user accepts or overrides)
 12. Industries you want? Industries to avoid?
-13. Sweet-spot asking price range? (defaults to budget range)
-14. Minimum cash flow (SDE) you need to live on / service debt?
+13. Sweet-spot asking price range? (defaults to budget range). If unsure, state the typical band for their categories and ask if they want to use it.
+14. Minimum cash flow (SDE) you need to live on / service debt? Show the typical SDE for their top category and the recommended floor — e.g. *"A typical HVAC business clears about $138k in SDE. A $70k floor keeps most listings visible; anything higher removes entire categories. Use that, or your own number?"* Also probe a multiple ceiling: typical {category} deals transact at {min}–{max}x SDE — suggest `max_multiple` from the top category.
 15. Any hard requirements? (must include real estate, max employees, etc.)
 
 ## Step 3 — Generate `config/profile.yml`
@@ -75,7 +83,11 @@ Normalization rules:
 - Money → plain integers, no `$`, commas, or "k"/"M" ("around 500k" → `500000`).
 - States → two-letter codes (`Texas` → `TX`). Metros → `"City, ST"`.
 - `involvement_level` → exactly one of `full-time owner-operator` | `semi-absentee` | `investor`.
-- Derive sensible defaults from their answers: `max_dscr_target` → `1.4` unless they say stricter; `target_sde_range.min` ≥ their stated minimum cash need; `max_multiple` → `4.0` unless they cap it lower; `min_cash_flow_margin` → `0.15`.
+- Derive sensible defaults from their answers, preferring the benchmarks-derived typicals when the user had none: `max_dscr_target` → `1.4` unless they say stricter; `target_sde_range.min` → 50% of the lowest matching category's typical SDE (or their stated cash need, whichever is lower) unless they give their own number; `max_multiple` → the highest matching category's `sde_multiple_max` (e.g. Laundromat 4.5x) unless they cap it lower; `min_cash_flow_margin` → the low end of the category's `typical_sde_margin` (e.g. Car Wash 25%).
+- **Guardrails — warn, don't silently accept.** Before writing, cross-check against `templates/benchmarks.yml` and flag anything that would starve results; let the user decide whether to keep it or take the typical:
+  1. `target_sde_range.min` above the lowest matching category's typical SDE → warn *"this excludes most {category} listings."*
+  2. `max_multiple` below the matching category's `sde_multiple_min` → warn *"this rules out nearly every {category} deal."*
+  3. `target_asking_price_range` (or budget) entirely above/below that category's typical asking band → warn *"your price range probably misses {category} — typical asking is ~$X–$Y."*
 
 Before writing, validate the generated YAML parses cleanly (you can run a quick parse check locally).
 
@@ -93,11 +105,14 @@ After writing `config/profile.yml`, offer calibration:
 
 ## Step 4 — Seed `portals.yml`
 
-If `portals.yml` is missing, offer to create it customized to their answers:
+Create or **regenerate** `portals.yml` customized to their answers:
 - Copy the structure of `templates/portals.example.yml`.
 - Build `search_queries` for their preferred industries × preferred states (`site:bizbuysell.com <industry> for sale <state>` and the same for bizquest).
 - Set `filters.asking_price_range` from their budget, `filters.categories` from preferred industries, `filters.locations` from preferred states (empty = all).
+- Set `filters.sde_range.min` to the same `target_sde_range.min` written into the profile (the typical-derived floor), so scans don't filter out matches that pass deal criteria.
 - Leave `exclude_keywords` empty unless they named exclusions beyond industries.
+
+**Regenerate when criteria change.** The scanner reads `portals.yml`, not `config/profile.yml`. If the user changed industries, budget range, or states — in onboarding or edit mode — rebuild `portals.yml` from the new values. Ask the user whether to keep any custom queries they added by hand before overwriting; keep those that still match the new criteria. Scans do not need their history cleared: criteria-rejected listings (see `modes/scan.md`) resurface automatically once the filters match them.
 
 ## Step 5 — Create `buyer-profile.md`
 
@@ -112,6 +127,7 @@ Read `config/profile.yml`. Present current values grouped (Identity & Money / Sk
 - Single section → re-ask only that group's questions showing current value per field ("Budget range [200000–750000]:").
 - `all` → rerun Step 2, pre-filling defaults from current values.
 - Apply edits, validate YAML (Step 3), and show a before → after diff summary of only the changed fields.
+- **Criteria changed** (industries, budget, states) → regenerate `portals.yml` per Step 4 so scans use the new criteria.
 
 ## Step 7 — Finish
 

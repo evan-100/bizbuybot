@@ -31,6 +31,8 @@ filters:
     min: 100000
     max: 1000000
 
+  # Setup mirrors sde_range.min from the profile SDE floor (50% of typical category SDE)
+  # so scan filters never exclude matches that pass deal criteria.
   sde_range:
     min: 50000
     max: 500000
