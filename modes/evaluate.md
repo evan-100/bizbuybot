@@ -27,11 +27,11 @@ Read these files in order (paths relative to the project root):
 ### Step 2 — Parse the Listing
 
 Extract and normalize these fields (use `null` if unavailable, and flag the gap in Block F):
-- `business_name`, `asking_price`, `revenue`, `sde`, `category`, `location`
+- `business_name`, `asking_price`, `revenue`, `sde`, `ebitda`, `category`, `location`
 - `inventory`, `ffe`, `real_estate` (Leased/Owned + expiration date), `lease_term_remaining`
 - `url`, `source` (BizBuySell, BizQuest, direct, paste)
 
-If `asking_price` or `sde` is missing, halt with an error — these are required to compute the multiple.
+Halt only if `asking_price` is missing **and** no cash-flow figure exists (`sde`, `ebitda`, and `revenue` are all null) — a listing with an asking price but no SDE is still evaluable (see Step 4, rule 0). Do not invent SDE on the spot; derive it per the estimation rule and flag it.
 
 ### Step 3 — Determine the Deal ID and Filename
 
@@ -44,7 +44,14 @@ If `asking_price` or `sde` is missing, halt with an error — these are required
 ### Step 4 — Apply Financial Sanity Rules
 
 Per `modes/_shared.md` Section 5:
-1. Recompute `multiple = asking_price / sde` (round to one decimal).
+
+0. **Estimate SDE when not disclosed.** If `sde` is missing but the seller discloses cash-flow data:
+   - If **EBITDA** is disclosed: derive SDE from it using the category's typical conversion (e.g., add back estimated owner compensation / add-backs typical for the category). State your assumption formula explicitly in Block B.
+   - If **EBITDA is absent** but **revenue** is disclosed: use the category's `typical_sde_margin` from `templates/benchmarks.yml` (or `data/local-benchmarks.yml`) — `SDE ≈ revenue × margin` at the low end of the range. State the formula.
+   - If **only asking price** is known (no SDE, no EBITDA, no revenue): halt — there is no basis to compute a multiple.
+   - Set `sde_estimated: true` in the YAML footer, mark it `≈` in the report, and note in Block F that the seller did not disclose SDE.
+
+1. Recompute `multiple = asking_price / sde` (round to one decimal). Use the adjusted/estimated SDE consistently in all downstream math.
 2. Audit add-backs. For each add-back claimed in the listing, judge defensibility. Subtract indefensible add-backs from SDE to get **adjusted SDE**. Recompute the multiple on adjusted SDE.
 3. Compute DSCR at the standard SBA 7(a) stack:
    - Buyer cash equity = 10% of asking price.

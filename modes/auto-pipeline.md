@@ -97,5 +97,5 @@ BizBuyBot Auto-Pipeline — Complete
 
 - If the fetch for a URL fails, ask the user to paste the listing text directly.
 - If `config/profile.yml` is missing, use `config/profile.example.yml` and flag BTM as provisional.
-- If the listing is missing `sde` or `asking_price`, halt with an error: cannot evaluate without these two fields.
+- If the listing is missing `asking_price` AND has no cash-flow figure at all (`sde`, `ebitda`, and `revenue` are all missing), halt: cannot evaluate without these fields. If SDE is missing but EBITDA or revenue is disclosed, estimate SDE per `modes/evaluate.md` Step 4 rule 0 and flag it `sde_estimated: true` — do not drop the listing.
 - If `add-entry.mjs` fails (e.g., ID collision), re-read `data/acquisitions.md`, recompute the next ID, and retry.

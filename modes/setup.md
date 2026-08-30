@@ -43,7 +43,7 @@ Step {N}/{8} — {title}
 2. `Step 2/8 — Total budget range` → `financial.budget_range.min/max`. Split a low/high pair (e.g. `200000 750000`). Note: *"A typical {category} asking falls around $X–$Y, so a budget in that band keeps results flowing."* Click-through default: the example defaults (`100000`–`1000000`).
 3. `Step 3/8 — How will you finance?` → menu: `1) SBA 7(a) 2) conventional 3) seller-financed 4) all-cash 5) mixed`. Also capture `pre_qualified` (yes/no) in the same step. Note about `max_dscr_target` → `1.4` default; default approach `SBA 7(a)`.
 4. `Step 4/8 — Involvement level` → menu: `1) full-time owner-operator 2) semi-absentee 3) investor`. Note: *"Your involvement changes the ideal SDE: owner-operators can run leaner SDE; semi-absentee typically wants more."* Default `1`.
-5. `Step 5/8 — Preferred locations` → `geography.preferred_states` (two-letter codes) and/or metros. Single entry ok (`TX`, `Austin, TX`). Note: leave blank to search everywhere. Default empty.
+5. `Step 5/8 — Preferred locations` → `geography.preferred_states` (two-letter codes) and/or metros. Single entry ok (`TX`, `Austin, TX`). Note: leave blank to search everywhere. Default empty. **Then ask about relocation:** `open_to_relocate` defaults to `false` — confirm the user is NOT open to looking beyond their preferred states/metro. If they ARE open, follow up: *"How far outside that area are you willing to go, in miles?"* → `geography.max_search_radius_miles` (0 = metro/state area only).
 6. `Step 6/8 — Industries` → two sub-prompts in ONE step: *want* → `industries.preferred`; *avoid* → `industries.excluded`. Note: *"Typical category SDEs: {category} ~${avg}, {category} ~${avg}…"* so the SDE step's default is anchored. Default empty.
 7. `Step 7/8 — Minimum cash flow (SDE)` → `deal_criteria.target_sde_range.min`. Default = **recommended SDE floor** (50% of lowest matching category's typical SDE, rounded to a clean number), shown in brackets — e.g. `[70000]`. Note: *"A typical {category} business clears ≈ ${avg} SDE, so a $70k floor keeps most listings visible; higher removes entire categories."* Also derive `target_sde_range.max` = ~3× the floor (or their budget upper, whichever is smaller) and `target_asking_price_range` band if not overridden.
 8. `Step 8/8 — Cash available for a down payment` → `financial.cash_down_payment`. Optional — Enter to skip (left blank). Note: *"SBA 7(a) typically needs 10% equity; back-of-envelope: keep this at least 10% of your max budget."*
@@ -70,7 +70,7 @@ financial:
 skills:
   industries: [], technical_skills: [], certifications: []
 geography:
-  preferred_states: [], preferred_metro: [], open_to_relocate: true, max_commute_minutes: 60
+  preferred_states: [], preferred_metro: [], open_to_relocate: false, max_search_radius_miles: null, max_commute_minutes: 60
 industries:
   preferred: [], excluded: [], involvement_level
 deal_criteria:

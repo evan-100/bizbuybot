@@ -78,7 +78,10 @@ Evaluate the listing against each of the following checks. A mismatch on any sin
 
 ### Check 3.4 — Geography Fit
 - Is the listing location in `geography.preferred_states` or `geography.preferred_metro`? (+)
-- If `geography.open_to_relocate` is false and the location is outside preferences → major mismatch.
+- `open_to_relocate` **defaults to `false`** — assume the buyer stays in `preferred_states` / `preferred_metro` unless they explicitly set it true.
+- If `open_to_relocate` is false and the location is outside preferences → major mismatch.
+- If `open_to_relocate` is true and `max_search_radius_miles` is set: treat listings within that radius of a preferred metro as a fit (+); beyond it → mismatch. (Radius in straight-line miles; if the listing city is unknown, judge by distance between the listing location and the preferred metro.)
+- If `open_to_relocate` is true and no radius is set, geography is not a blocker on its own (neutral).
 - Compute commute if a metro is specified and `max_commute_minutes` is set. (Heuristic: if outside the preferred metro, treat as exceeding the commute cap unless `open_to_relocate` is true.)
 
 ### Check 3.5 — Involvement Level Fit

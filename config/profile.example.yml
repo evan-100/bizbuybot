@@ -29,7 +29,8 @@ skills:
 geography:
   preferred_states: []        # e.g. ["TX", "FL", "NC"]
   preferred_metro: []         # e.g. ["Austin, TX", "Tampa, FL"]
-  open_to_relocate: true
+  open_to_relocate: false     # false by default; only set true if you'll consider deals outside preferred_metro
+  max_search_radius_miles: null   # how far outside preferred_metro you'll go, in miles (0 = metro only). Ignored when open_to_relocate is false.
   max_commute_minutes: 60
 
 # --- Industry Preferences ---

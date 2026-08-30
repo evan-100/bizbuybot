@@ -176,6 +176,7 @@ Rules:
 
 ## 5. Financial Sanity Rules (always apply)
 
+0. **SDE not disclosed? Estimate and flag it — never invent silently.** If the seller discloses no SDE but EBITDA or revenue is present, derive an SDE estimate (EBITDA + category-typical owner-compensations/add-backs, or `revenue × typical_sde_margin` low end for the category). Compute the multiple on that estimate, mark it `sde_estimated: true` in the YAML footer, and display it with `≈` in the report. Only halt when no cash-flow basis exists at all (no SDE, EBITDA, or revenue) *in addition to* a missing asking price.
 1. **Recompute SDE multiple:** `multiple = asking_price / sde`. Round to one decimal.
 2. **Audit add-backs:** For each add-back in the listing, judge defensibility. Owner salary above replacement cost, personal auto, personal insurance, one-time expenses presented as recurring — subtract these from SDE. Recompute the multiple on **adjusted SDE**.
 3. **DSCR computation:** Use the standard SBA 7(a) stack (10% buyer equity, 10–15% seller note on standby, 75–80% SBA term loan). Assume an SBA 7(a) rate of ~11% on a 10-year amortization for the SBA portion. `DSCR = adjusted_sde / annual_debt_service`. Flag if DSCR < 1.4.

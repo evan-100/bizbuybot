@@ -43,7 +43,7 @@ Apply a verdict per row against the buyer profile (`config/profile.yml`, or `con
 
 - **Asking price** within `deal_criteria.target_asking_price_range` (or `financial.budget_range`)? Out of range → 🔴 poor fit.
 - **Title** keyword overlaps `industries.preferred`, and does not hit `industries.excluded`? Strong mismatch → 🔴.
-- **Location** in `geography.preferred_states` / `preferred_metro` (or `open_to_relocate: true`)? Mismatch when not flexible → 🔴.
+- **Location** in `geography.preferred_states` / `preferred_metro` (or `open_to_relocate: true` and within `max_search_radius_miles`, if set)? Mismatch when not flexible → 🔴. `open_to_relocate` defaults to `false`.
 - Otherwise: inside range + matches category & location → ✅ strong fit; unclear → 🟡 worth a look.
 - Add a one-line rationale per row pointing at the criterion that drove the verdict.
 

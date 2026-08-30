@@ -429,7 +429,13 @@ async function main() {
   let server;
   try {
     server = startServer({ port, dataDir });
-    await new Promise((resolve) => server.listen(port, resolve));
+    await new Promise((resolve, reject) => {
+      server.once('error', reject);
+      server.listen(port, () => {
+        server.removeListener('error', reject);
+        resolve();
+      });
+    });
   } catch (err) {
     if (err.code !== 'EADDRINUSE') throw err;
     port = await findFreePort(requested);
@@ -438,7 +444,13 @@ async function main() {
         `Starting on the next free port instead: ${port}`,
     );
     server = startServer({ port, dataDir });
-    await new Promise((resolve) => server.listen(port, resolve));
+    await new Promise((resolve, reject) => {
+      server.once('error', reject);
+      server.listen(port, () => {
+        server.removeListener('error', reject);
+        resolve();
+      });
+    });
   }
 
   const url = `http://localhost:${port}`;

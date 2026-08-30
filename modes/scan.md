@@ -41,25 +41,26 @@ The `scan` action runs all queries configured in `portals.yml`. It does not acce
 
 ### Step 4 — Walk the User Through the Findings
 
-Present the results as a readable markdown table in chat, then triage. Do not just paste the raw terminal output — walk the user through it:
+Present the results as **one markdown table** in chat, then triage. Do not just paste the raw terminal output, and never render listings as `#: N` / `Business:` / `Verdict:` key:value blocks — the table is the required format:
 
-1. **Show the new listings table:**
+1. **Show the new listings table.** Include every new listing (not just the first 10). Use exactly these columns:
 
    ```markdown
-   | # | Business | Location | Asking | SDE | Mult | Source |
-   |---|----------|----------|--------|-----|------|--------|
-   | 1 | Prime Plaza Laundromat | Houston, TX | $520,000 | $180,000 | 2.9x | bizbuysell |
+   | # | Business | Location | Asking | SDE | Mult | Verdict | Source |
+   |---|----------|----------|--------|-----|------|---------|--------|
+   | 1 | [Prime Plaza Laundromat](https://.../opportunity/abc) | Houston, TX | $520,000 | $180,000 | 2.9x | 🟡 worth a look | bizbuysell |
    ```
 
-   Include every new listing (not just the first 10). Link each title to its listing URL.
+   Link each title to its URL with an inline markdown link (`[Title](url)`) — never paste raw URLs into a cell or into a bullet list.
+   The **Verdict** column holds the triage emoji plus its one-line rationale (see step 3). For a large scan, the table may be long — that is fine, render the whole thing.
 
 2. **Triage against the buyer profile** (`config/profile.yml`, or `config/profile.example.yml` if absent). For each listing check:
    - Asking price within `deal_criteria.target_asking_price_range`?
    - Category in `industries.preferred` (and not in `industries.excluded`)?
-   - Location in `geography.preferred_states` / `preferred_metro` (or `open_to_relocate: true`)?
+   - Location in `geography.preferred_states` / `preferred_metro` (or `open_to_relocate: true` and within `max_search_radius_miles`, if set)? `open_to_relocate` defaults to `false` — outside the area is a 🔴 unless explicitly open.
    - Multiple vs `data/local-benchmarks.yml` if present, else `templates/benchmarks.yml`, for its category — flag anything above the benchmark high end.
 
-3. **Give a verdict per row:** ✅ strong fit · 🟡 worth a look · 🔴 poor fit — with a one-line rationale referencing the profile criterion or benchmark that drove it.
+3. **Give a verdict per row** — ✅ strong fit · 🟡 worth a look · 🔴 poor fit — with a one-line rationale referencing the profile criterion or benchmark that drove it. Put the emoji and rationale together in the row's **Verdict** column; do not restate it below the table.
 
 4. **Recommend the top 3–5 candidates** for full A-F evaluation, ranked, with rationale.
 
