@@ -48,12 +48,12 @@ BizBuyBot enforces a strict **two-layer separation** between system code and use
 | `config/profile.yml` | Active buyer profile (financial capacity, deal criteria, preferences). Gitignored. |
 | `buyer-profile.md` | Free-form buyer narrative and investment thesis. Gitignored. |
 | `portals.yml` | Active portal search criteria. Gitignored. |
-| `data/acquisitions.md` | Canonical deal tracker — one row per evaluated business. |
-| `data/pipeline.md` | Scrape inbox — raw leads pending evaluation. |
-| `data/scan-history.tsv` | Deduplication index for scraped listings (criteria-rejected rows resurface on re-scan). |
-| `data/status-log.tsv` | Audit ledger of all deal status transitions. |
+| `data/acquisitions.md` | Canonical deal tracker — one row per evaluated business. Gitignored (`doctor` seeds an empty skeleton). |
+| `data/pipeline.md` | Scrape inbox — raw leads pending evaluation. Gitignored (`doctor` seeds an empty skeleton). |
+| `data/scan-history.tsv` | Deduplication index for scraped listings (criteria-rejected rows resurface on re-scan). Gitignored (`doctor` seeds an empty skeleton). |
+| `data/status-log.tsv` | Audit ledger of all deal status transitions. Gitignored (`doctor` seeds an empty skeleton). |
 | `data/local-benchmarks.yml` | Generated per-user benchmark overlay (gitignored). |
-| `reports/*.md` | Generated deal reports and artifacts. |
+| `reports/*.md` | Generated deal reports and artifacts. Gitignored. |
 
 ### System Layer (version-controlled, read-only to user)
 

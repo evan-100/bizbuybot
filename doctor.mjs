@@ -60,14 +60,23 @@ export function runDoctor({ root }) {
     checkFile(f);
   }
 
-  // Required data files
-  for (const f of [
-    'data/acquisitions.md',
-    'data/pipeline.md',
-    'data/scan-history.tsv',
-    'data/status-log.tsv',
-  ]) {
-    checkFile(f);
+  // Required data files — these are personal (gitignored) but the pipeline needs
+  // them to exist; seed empty skeletons on first run so doctor passes on a fresh clone.
+  const dataSkeletons = {
+    'data/acquisitions.md':
+      '# BizBuyBot — Acquisitions Tracker\n\nCanonical deal tracker. One row per evaluated business.\n\n| # | Date | Business | Category | Location | Asking Price | Cash Flow (SDE) | Multiple | Score | Status | Report | Notes |\n|---|---|---|---|---|---|---|---|---|---|---|---|\n',
+    'data/pipeline.md':
+      '# BizBuyBot — Pipeline Inbox\n\nRaw leads discovered via scraping or manual entry. Pending items are awaiting evaluation. Processed items have been evaluated and added to the acquisitions tracker.\n\n## Pending\n\n## Processed\n',
+    'data/scan-history.tsv': 'listing_id\turl\ttitle\tasking_price\tsde\tsource\tfirst_seen\trejection\n',
+    'data/status-log.tsv': 'timestamp\tdeal_id\tfrom_status\tto_status\treason\n',
+  };
+  for (const [rel, skeleton] of Object.entries(dataSkeletons)) {
+    const p = path.join(root, rel);
+    if (!fs.existsSync(p)) {
+      fs.mkdirSync(path.dirname(p), { recursive: true });
+      fs.writeFileSync(p, skeleton);
+    }
+    checkFile(rel);
   }
 
   // Dependencies

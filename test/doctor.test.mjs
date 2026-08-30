@@ -75,14 +75,15 @@ test('runDoctor: fully-populated root → ok: true, no fails', () => {
   assert.equal(fails.length, 0, `Unexpected fails: ${JSON.stringify(fails)}`);
 });
 
-test('runDoctor: missing data/acquisitions.md → fail, ok: false', () => {
+test('runDoctor: missing data/acquisitions.md → auto-seeds skeleton, ok: true', () => {
   const root = setupFullRoot();
   fs.unlinkSync(path.join(root, 'data', 'acquisitions.md'));
   const result = runDoctor({ root });
-  assert.equal(result.ok, false);
+  assert.equal(result.ok, true, `Expected ok: true after seeding, got: ${JSON.stringify(result.checks, null, 2)}`);
+  assert.ok(fs.existsSync(path.join(root, 'data', 'acquisitions.md')), 'doctor should re-create the data file');
   const check = findCheck(result, 'data/acquisitions.md');
   assert.ok(check, 'Should have a check for data/acquisitions.md');
-  assert.equal(check.status, 'fail');
+  assert.equal(check.status, 'ok');
 });
 
 test('runDoctor: missing config/profile.yml → warn, ok still true', () => {

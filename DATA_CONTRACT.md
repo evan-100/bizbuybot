@@ -17,13 +17,13 @@ These files belong to the user. They survive system updates, are never overwritt
 | `config/profile.yml` | Active buyer profile (financial capacity, deal criteria, preferences) | Yes |
 | `buyer-profile.md` | Free-form buyer narrative and investment thesis | Yes |
 | `portals.yml` | Active portal search criteria (derived from `templates/portals.example.yml`) | Yes |
-| `data/acquisitions.md` | Canonical deal tracker — one row per evaluated business | No (user data, but committed as seed) |
-| `data/pipeline.md` | Scrape inbox — raw leads pending evaluation | No (user data, but committed as seed) |
-| `data/scan-history.tsv` | Deduplication index for scraped listings | No |
-| `data/status-log.tsv` | Audit ledger of all deal status transitions | No |
+| `data/acquisitions.md` | Canonical deal tracker — one row per evaluated business | Yes (personal deal data; `doctor` seeds an empty skeleton on first run) |
+| `data/pipeline.md` | Scrape inbox — raw leads pending evaluation | Yes (personal deal data; `doctor` seeds an empty skeleton on first run) |
+| `data/scan-history.tsv` | Deduplication index for scraped listings | Yes (personal deal data; `doctor` seeds an empty skeleton on first run) |
+| `data/status-log.tsv` | Audit ledger of all deal status transitions | Yes (personal deal data; `doctor` seeds an empty skeleton on first run) |
 | `data/local-benchmarks.yml` | Generated per-user benchmark overlay (metro revenue, state margins) | Yes |
 | `data/cache/` | Generated federal-data cache; never committed | Yes |
-| `reports/*.md` | Generated deal reports and artifacts (eval reports, DD checklists, outreach, LOIs) | No |
+| `reports/*.md` | Generated deal reports and artifacts (eval reports, DD checklists, outreach, LOIs) | Yes (personal deal data) |
 
 ### SYSTEM LAYER (Deterministic engine & prompt logic)
 

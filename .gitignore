@@ -6,9 +6,17 @@ config/profile.yml
 portals.yml
 buyer-profile.md
 
-# Generated per-user artifacts
-data/cache/
+# Personal deal data (gitignored per DATA_CONTRACT)
+data/acquisitions.md
+data/pipeline.md
+data/scan-history.tsv
+data/status-log.tsv
 data/local-benchmarks.yml
+data/cache/
+
+# Generated deal reports & artifacts (gitignored per DATA_CONTRACT)
+reports/*.md
+!reports/README.md
 
 # Secrets / env
 .env
