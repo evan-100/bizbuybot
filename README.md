@@ -9,7 +9,7 @@
 <p align="center">
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License"></a>
   <img src="https://img.shields.io/badge/Node.js-339933?style=flat&logo=node.js&logoColor=white" alt="Node.js">
-  <img src="https://img.shields.io/badge/CLI-OpenCode%20%C2%B7%20Claude%20Code-%23000" alt="AI CLIs">
+  <img src="https://img.shields.io/badge/CLI-OpenCode%20%C2%B7%20Claude%20Code%20%C2%B7%20Codex-%23000" alt="AI CLIs">
   <img src="https://img.shields.io/badge/status-beta-yellow" alt="Status: beta">
 </p>
 
@@ -57,11 +57,10 @@ npm run doctor     # verifies everything is ready
 
 ### First Steps
 
-**1. Launch your AI CLI from the project folder.** BizBuyBot runs *inside* your coding agent — open terminal, `cd` into the project, and start **opencode** or **claude** (whichever you use):
+**1. Launch your AI CLI from the project folder.** BizBuyBot runs *inside* your coding agent — open terminal and start **opencode**, **claude**, or **codex** (whichever you use):
 
 ```bash
-cd bizbuybot
-opencode        # or: claude
+opencode        # or: claude, or: codex
 ```
 
 **2. Run the command inside the agent.** Once your CLI is up, type:
@@ -81,6 +80,8 @@ After setup you're ready to go:
 ```
 
 ### Commands
+
+The `/bizbuybot` command syntax below is how **opencode** invokes it. **Claude Code** and **Codex** load the same BizBuyBot skill (from `.claude/skills/` and `.agents/skills/` respectively) — open their skill picker (Claude: `/skills` or `@bizbuybot`; Codex: `/skills` or `$bizbuybot`) or just describe what you want ("scan for cleaning businesses in Houston").
 
 | Command | Action |
 |---|---|
@@ -124,29 +125,10 @@ Read [`DATA_CONTRACT.md`](DATA_CONTRACT.md) for the full contract, and [`AGENTS.
 
 ---
 
-## Local Benchmarks (a genuinely handy feature)
-
-Most acquirers compare a listing against **national averages** — a laundromat in your city gets scored against a laundromat in the whole country. BizBuyBot can do better.
-
-During setup it offers to calibrate benchmarks to **your** buying area by pulling two real federal datasets:
-
-- **Metro revenue** — US Census SUSB figures for <20-employee firms in *your* metro (e.g. average HVAC revenue for Orlando vs. the US average).
-- **State margins** — IRS Schedule C sole-proprietor net margins for *your* state, per industry.
-
-Run it once (it downloads ~50MB of Census data, cached so it runs only once) and every evaluation you run compares deals against **your market, not the national average**:
-
-```
-/bizbuybot setup     # yes to "calibrate benchmarks to my metro?"
-```
-
-Each report shows which benchmarks were localized (and any that fell back to national figures). Once your profile is set, `npm run benchmarks -- --dry-run` previews the localized table for you — handy before committing to the full download.
-
----
-
 ## Methodology Notes
 
 - **SDE multiples** come from industry rules-of-thumb (marketplace history, SBA lending norms) — directional, not absolute.
-- **Local bench options** — metro revenue and state margins calibrated to your own buying area for more relevant comparisons (see above).
+- **Local benchmarks** — during setup you can calibrate benchmarks to your buying area (metro revenue from Census, state margins from IRS), so evaluations compare against *your market* instead of national averages.
 - **Source transparency** — every report shows exactly how the score and the multiple were reached, with the sources cited.
 
 ---
