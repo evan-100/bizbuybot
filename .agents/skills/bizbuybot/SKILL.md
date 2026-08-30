@@ -24,7 +24,7 @@ BizBuyBot is an AI-powered business acquisition command center for Small Main St
 
 ## Routing Logic
 
-**Pre-flight check (run before any mode):** if `config/profile.yml` is missing, tell the user their buyer profile isn't set up and ask: *"Run `/bizbuybot setup` first? (evaluations will use provisional defaults until then)"*. Proceed with the requested mode either way if they decline.
+**Pre-flight check (run before any mode):** if `config/profile.yml` is missing, **automatically start the setup interview** (`modes/setup.md`) — do not ask first. The user can decline mid-interview if they really want to skip; then note that evaluations will use provisional defaults and continue with the requested mode.
 
 Given the user input after `/bizbuybot`, determine which mode to execute:
 

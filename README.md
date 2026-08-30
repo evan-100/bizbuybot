@@ -57,13 +57,13 @@ npm run doctor     # verifies everything is ready
 
 ### First Steps
 
-Start your AI CLI in this folder and run any command — the first time, it will ask whether you want to set up your profile:
+Start your AI CLI in this folder and run any command. On first launch it **automatically walks you through setup** (buyer profile, search criteria, thesis) — no separate step needed:
 
 ```
 /bizbuybot           # your first command
 ```
 
-Answer yes to walk through the setup interview (buyer profile, search criteria, thesis), or skip and it will use provisional defaults until you do. No file editing needed. The repo ships with **fictional sample data**, so the dashboard and tracker work right away. Then you're ready:
+You can decline the interview and use provisional defaults if you prefer. After that you're ready:
 
 ```
 /bizbuybot                  → menu + pipeline summary
@@ -98,7 +98,7 @@ BizBuyBot keeps your data safe with a few simple command-line tools — add deal
 |---|---|---|
 | ![Pipeline](docs/screenshots/dashboard-pipeline.png) | ![Deal report](docs/screenshots/dashboard-deal.png) | ![DD checklist](docs/screenshots/dashboard-dd.png) |
 
-*Rendered from the included sample data.*
+*Example views of the browser dashboard.*
 
 ---
 
