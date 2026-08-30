@@ -42,7 +42,7 @@ Given the user input after `/bizbuybot`, determine which mode to execute:
    | `dd` | `modes/dd.md` |
    | `outreach` | `modes/outreach.md` |
    | `tracker` | `modes/tracker.md` |
-   | `dashboard` | Browser dashboard at localhost:4826 — if not running, start detached (`(nohup node dashboard.mjs ... &)`) and the browser opens automatically; never run it in the foreground |
+   | `dashboard` | Browser dashboard at localhost:4826 — if not running, start detached (`(nohup node dashboard.mjs ... &)`) and the browser opens automatically; never run it in the foreground. If port 4826 is taken by a stale dashboard from another copy of the project, the script self-heals: it logs a warning and starts on the next free port (4827, 4828, …), opening the browser to the *correct* new instance. |
    | `export` | Read `modes/tracker.md` Step 7 — run `node export-pipeline.mjs --format=csv|json` |
 
    For `loi`, `dd`, and `outreach`, the second token is the deal ID or slug argument passed to the mode.

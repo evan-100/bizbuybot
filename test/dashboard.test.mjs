@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { dump as yamlDump } from 'js-yaml';
-import { loadDeals, filterDeals, sortDeals, startServer } from '../dashboard.mjs';
+import { loadDeals, filterDeals, sortDeals, startServer, findFreePort } from '../dashboard.mjs';
 
 function setupTempProject() {
   const tmpdir = fs.mkdtempSync(path.join(os.tmpdir(), 'bizbuybot-dash-'));
@@ -43,6 +43,41 @@ async function withServer(fn) {
 }
 
 // ===== pure logic =====
+
+test('findFreePort returns the next free port after a taken one', async () => {
+  const { createServer } = await import('node:net');
+  // Occupy a port to force a collision.
+  const blocker = createServer();
+  await new Promise((resolve) => blocker.listen(0, resolve));
+  const takenPort = blocker.address().port;
+
+  const free = await findFreePort(takenPort);
+  assert.ok(free > takenPort, `fallback port ${free} should be above the taken ${takenPort}`);
+  // The found port should itself be bindable.
+  const probe = createServer();
+  await new Promise((resolve, reject) => {
+    probe.once('error', reject);
+    probe.listen(free, resolve);
+  });
+  await new Promise((resolve) => probe.close(resolve));
+  await new Promise((resolve) => blocker.close(resolve));
+});
+
+test('findFreePort skips ports in use and returns a bindable one', async () => {
+  const { createServer } = await import('node:net');
+  const blockers = [];
+  for (let i = 0; i < 3; i++) {
+    const s = createServer();
+    await new Promise((resolve) => s.listen(0, resolve));
+    blockers.push(s);
+  }
+  const taken = blockers.map((b) => b.address().port);
+  const base = taken[0];
+  const free = await findFreePort(base);
+  assert.ok(!taken.includes(free), `should not return a port we occupy (${free} in ${taken})`);
+  assert.ok(free > base);
+  for (const s of blockers) await new Promise((resolve) => s.close(resolve));
+});
 
 test('loadDeals parses tracker rows into deal objects', () => {
   const root = setupTempProject();

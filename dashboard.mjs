@@ -420,13 +420,26 @@ function openBrowser(url) {
 async function main() {
   const args = process.argv.slice(2);
   const portFlag = args.find((a) => a.startsWith('--port='));
-  const port = portFlag ? parseInt(portFlag.split('=')[1], 10) : DEFAULT_PORT;
+  const requested = portFlag ? parseInt(portFlag.split('=')[1], 10) : DEFAULT_PORT;
   const noOpen = args.includes('--no-open');
   const dataDirFlag = args.find((a) => a.startsWith('--data-dir='));
   const dataDir = dataDirFlag ? dataDirFlag.split('=')[1] : path.join(__dirname, 'data');
 
-  const server = startServer({ port, dataDir });
-  await new Promise((resolve) => server.listen(port, resolve));
+  let port = requested;
+  let server;
+  try {
+    server = startServer({ port, dataDir });
+    await new Promise((resolve) => server.listen(port, resolve));
+  } catch (err) {
+    if (err.code !== 'EADDRINUSE') throw err;
+    port = await findFreePort(requested);
+    console.warn(
+      `Port ${requested} is in use by another process (likely a stale dashboard from another copy of the project).` +
+        `Starting on the next free port instead: ${port}`,
+    );
+    server = startServer({ port, dataDir });
+    await new Promise((resolve) => server.listen(port, resolve));
+  }
 
   const url = `http://localhost:${port}`;
   console.log(`BizBuyBot Dashboard running at ${url}`);
@@ -436,6 +449,20 @@ async function main() {
     openBrowser(url);
   }
 }
+
+async function findFreePort(from) {
+  const { createServer } = await import('node:net');
+  for (let p = from + 1; p < from + 50; p++) {
+    const ok = await new Promise((resolve) => {
+      const s = createServer();
+      s.once('error', () => resolve(false));
+      s.listen(p, () => s.close(() => resolve(true)));
+    });
+    if (ok) return p;
+  }
+  throw new Error('No free port found in a reasonable range');
+}
+export { findFreePort };
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   main();
