@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/screenshots/hero.png" alt="BizBuyBot — AI-powered business acquisition command center" width="720" />
+  <img src="docs/screenshots/dashboard-top.png" alt="BizBuyBot — AI-powered business acquisition command center" width="720" />
 </p>
 
 <p align="center">
