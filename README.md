@@ -52,68 +52,26 @@ Buying a small Main Street business — a laundromat, an HVAC/plumbing contracto
 git clone https://github.com/evan-100/bizbuybot.git
 cd bizbuybot
 npm install
+npm run doctor     # verifies everything is ready
 ```
 
-### Set up
+### First Steps
 
-```bash
-npm run doctor     # verifies everything is ready (works out of the box)
-```
-
-Then, in your AI CLI, run the interactive setup instead of editing files by hand:
+Start your AI CLI in this folder and initialize your profile once:
 
 ```
-/bizbuybot setup        # interview: builds your profile + search queries + buyer thesis
+/bizbuybot setup      # interactive interview → buyer profile, search criteria, thesis
 ```
 
-That writes your buyer profile, portal searches, and investment thesis for you — with benchmark calibration offered along the way. (You can also edit the example files manually; the evaluation logic falls back to them until you do.)
-
-> The repo ships with **fictional sample data**, so the dashboard and tracker work immediately. Replace it with your own deals using the scripts below.
-
-### Run
-
-Open your AI CLI in the `bizbuybot/` directory and start with:
+The interview writes your personal config for you — no file editing needed. Repo ships with **fictional sample data**, so the dashboard and tracker work immediately. Then you're ready:
 
 ```
-/bizbuybot                  → interactive menu + pipeline summary
-/bizbuybot <URL or text>    → full auto-pipeline
-/bizbuybot dashboard        → open the browser dashboard
+/bizbuybot                  → menu + pipeline summary
+/bizbuybot <URL or text>    → full auto-pipeline (evaluate + track in one step)
+/bizbuybot dashboard        → open the browser dashboard  (or: npm run dashboard)
 ```
 
-Or launch the dashboard directly:
-
-```bash
-npm run dashboard
-```
-
-### A Typical Flow
-
-```bash
-# 1. Find a listing that meets your criteria
-# 2. Evaluate it — paste the URL or listing text:
-/bizbuybot https://www.bizbuysell.com/business-opportunity/...
-# 3. Read the report — score, multiple, cash flow, red flags
-# 4. If it's worth pursuing, generate the documents:
-/bizbuybot dd 001          # due-diligence checklist
-/bizbuybot loi 001         # letter of intent draft
-/bizbuybot outreach 001    # broker/seller inquiry draft
-# 5. Track everything
-/bizbuybot tracker
-```
-
----
-
-## Screenshots
-
-| Pipeline dashboard | Deal report | Due-diligence checklist |
-|---|---|---|
-| ![Pipeline](docs/screenshots/dashboard-pipeline.png) | ![Deal report](docs/screenshots/dashboard-deal.png) | ![DD checklist](docs/screenshots/dashboard-dd.png) |
-
-*Rendered from the included sample data.*
-
----
-
-## Command Reference
+### Commands
 
 | Command | Action |
 |---|---|
@@ -131,6 +89,16 @@ npm run dashboard
 ### Behind the scenes
 
 BizBuyBot keeps your data safe with a few simple command-line tools — add deals, change statuses, verify the pipeline, export, scan marketplaces, check setup health, and calibrate benchmarks. Quality is enforced by automated tests and a pipeline-integrity check that run on every change.
+
+---
+
+## Screenshots
+
+| Pipeline dashboard | Deal report | Due-diligence checklist |
+|---|---|---|
+| ![Pipeline](docs/screenshots/dashboard-pipeline.png) | ![Deal report](docs/screenshots/dashboard-deal.png) | ![DD checklist](docs/screenshots/dashboard-dd.png) |
+
+*Rendered from the included sample data.*
 
 ---
 
