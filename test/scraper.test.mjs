@@ -72,6 +72,8 @@ test('normalizePrice returns null for garbage', () => {
   assert.equal(normalizePrice(null), null);
   assert.equal(normalizePrice(undefined), null);
   assert.equal(normalizePrice('Price on request'), null);
+  assert.equal(normalizePrice('Call for price'), null);
+  assert.equal(normalizePrice('Not Disclosed'), null);
 });
 
 test('normalizePrice handles surrounding whitespace', () => {

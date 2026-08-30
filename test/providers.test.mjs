@@ -380,6 +380,17 @@ test('processListings keeps listings with unknown (null) price inside a set rang
   assert.equal(result.added.length, 1);
 });
 
+test('processListings keeps listings with unknown (null) SDE inside a set sde_range', () => {
+  const dir = setupTempDataDir();
+  const listings = [
+    { title: 'No SDE Disclosed', price: 450000, sde: null, revenue: null, location: 'Austin, TX', description: null, category: 'Laundromat', url: 'https://www.bizbuysell.com/opportunity/no-sde', source: 'bizbuysell' },
+  ];
+  const filters = { asking_price_range: { min: 100000, max: 1000000 }, sde_range: { min: 75000, max: 300000 }, categories: [], exclude_keywords: [] };
+  const result = processListings(listings, { dataDir: dir, filters });
+  assert.equal(result.skipped.length, 0, 'missing SDE must not be filtered out by the SDE floor');
+  assert.equal(result.added.length, 1);
+});
+
 test('processListings skips listings matching exclude_keywords', () => {
   const dir = setupTempDataDir();
   const listings = [
