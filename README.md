@@ -57,11 +57,16 @@ npm install
 ### Set up
 
 ```bash
-cp config/profile.example.yml config/profile.yml    # your financial capacity + deal criteria
-cp templates/portals.example.yml portals.yml         # search queries for the scanner
-cp buyer-profile.example.md buyer-profile.md         # your investment thesis
-npm run doctor                                       # verifies everything is ready
+npm run doctor     # verifies everything is ready (works out of the box)
 ```
+
+Then, in your AI CLI, run the interactive setup instead of editing files by hand:
+
+```
+/bizbuybot setup        # interview: builds your profile + search queries + buyer thesis
+```
+
+That writes your buyer profile, portal searches, and investment thesis for you — with benchmark calibration offered along the way. (You can also edit the example files manually; the evaluation logic falls back to them until you do.)
 
 > The repo ships with **fictional sample data**, so the dashboard and tracker work immediately. Replace it with your own deals using the scripts below.
 
