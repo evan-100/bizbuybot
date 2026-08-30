@@ -27,7 +27,7 @@ Buying a small Main Street business — a laundromat, an HVAC/plumbing contracto
 |---|---|
 | **Auto-Pipeline** | Paste a listing URL or text — get a full evaluation and a tracker entry in one step |
 | **A-F Evaluation** | Five scoring dimensions plus a holistic 1.0–5.0 score, with a clear written report you can act on |
-| **Industry Benchmarks** | SDE-multiple ranges per business category; calibrate to your own metro and state |
+| **Industry Benchmarks** | SDE-multiple ranges per business category — and **local benchmarks** pulled from real Census + IRS data for your metro |
 | **Due-Diligence Checklists** | A tailored checklist per deal — financials, lease, employees, valuation |
 | **Broker / Seller Outreach** | Initial inquiry email drafts, focused on the gaps in each listing |
 | **Letter of Intent** | Customized LOI drafts from the evaluated deal |
@@ -57,13 +57,22 @@ npm run doctor     # verifies everything is ready
 
 ### First Steps
 
-Start your AI CLI in this folder and run any command. On first launch it **automatically walks you through setup** (buyer profile, search criteria, thesis) — no separate step needed:
+**1. Launch your AI CLI from the project folder.** BizBuyBot runs *inside* your coding agent — open terminal, `cd` into the project, and start **opencode** or **claude** (whichever you use):
+
+```bash
+cd bizbuybot
+opencode        # or: claude
+```
+
+**2. Run the command inside the agent.** Once your CLI is up, type:
 
 ```
 /bizbuybot           # your first command
 ```
 
-You can decline the interview and use provisional defaults if you prefer. After that you're ready:
+On first launch it **automatically walks you through setup** — it asks you the buyer-profile questions (budget, target industries, geography, financing) right there in the chat. No separate setup step, no files to edit. You can decline the interview and use provisional defaults if you prefer.
+
+After setup you're ready to go:
 
 ```
 /bizbuybot                  → menu + pipeline summary
@@ -115,11 +124,30 @@ Read [`DATA_CONTRACT.md`](DATA_CONTRACT.md) for the full contract, and [`AGENTS.
 
 ---
 
+## Local Benchmarks (a genuinely handy feature)
+
+Most acquirers compare a listing against **national averages** — a laundromat in your city gets scored against a laundromat in the whole country. BizBuyBot can do better.
+
+During setup it offers to calibrate benchmarks to **your** buying area by pulling two real federal datasets:
+
+- **Metro revenue** — US Census SUSB figures for <20-employee firms in *your* metro (e.g. average HVAC revenue for Orlando vs. the US average).
+- **State margins** — IRS Schedule C sole-proprietor net margins for *your* state, per industry.
+
+Run it once (it downloads ~50MB of Census data, cached so it runs only once) and every evaluation you run compares deals against **your market, not the national average**:
+
+```
+/bizbuybot setup     # yes to "calibrate benchmarks to my metro?"
+```
+
+Each report shows which benchmarks were localized (and any that fell back to national figures). Once your profile is set, `npm run benchmarks -- --dry-run` previews the localized table for you — handy before committing to the full download.
+
+---
+
 ## Methodology Notes
 
 - **SDE multiples** come from industry rules-of-thumb (marketplace history, SBA lending norms) — directional, not absolute.
-- **Local bench options** — you can calibrate metro revenue and state margins to your own buying area for more relevant comparisons.
-- **Source transparency** — every report is written so you can see exactly how the score and the multiple were reached.
+- **Local bench options** — metro revenue and state margins calibrated to your own buying area for more relevant comparisons (see above).
+- **Source transparency** — every report shows exactly how the score and the multiple were reached, with the sources cited.
 
 ---
 
