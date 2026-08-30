@@ -57,13 +57,13 @@ npm run doctor     # verifies everything is ready
 
 ### First Steps
 
-Start your AI CLI in this folder and initialize your profile once:
+Start your AI CLI in this folder and run any command — the first time, it will ask whether you want to set up your profile:
 
 ```
-/bizbuybot setup      # interactive interview → buyer profile, search criteria, thesis
+/bizbuybot           # your first command
 ```
 
-The interview writes your personal config for you — no file editing needed. Repo ships with **fictional sample data**, so the dashboard and tracker work immediately. Then you're ready:
+Answer yes to walk through the setup interview (buyer profile, search criteria, thesis), or skip and it will use provisional defaults until you do. No file editing needed. The repo ships with **fictional sample data**, so the dashboard and tracker work right away. Then you're ready:
 
 ```
 /bizbuybot                  → menu + pipeline summary
