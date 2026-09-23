@@ -104,9 +104,9 @@ BizBuyBot keeps your data safe with a few simple command-line tools — add deal
 
 ## Screenshots
 
-| Pipeline dashboard | Deal report | Due-diligence checklist |
+| Pipeline inbox (home) | Deal report | Due-diligence checklist |
 |---|---|---|
-| ![Pipeline](docs/screenshots/dashboard-pipeline.png) | ![Deal report](docs/screenshots/dashboard-deal.png) | ![DD checklist](docs/screenshots/dashboard-dd.png) |
+| ![Pipeline inbox](docs/screenshots/dashboard-home.png) | ![Deal report](docs/screenshots/dashboard-deal.png) | ![DD checklist](docs/screenshots/dashboard-dd.png) |
 
 *Example views of the browser dashboard.*
 

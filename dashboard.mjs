@@ -40,6 +40,34 @@ export function loadDeals(dataDir) {
     }));
 }
 
+export function loadPipeline(dataDir) {
+  const inboxPath = path.join(dataDir, 'pipeline.md');
+  if (!fs.existsSync(inboxPath)) return [];
+  const content = fs.readFileSync(inboxPath, 'utf-8');
+  const pending = content.split('## Processed')[0] || content;
+  const leads = [];
+  for (const line of pending.split('\n')) {
+    const m = line.match(/^\s*- \[[ xX]\]\s+(\S+)\s*\|\s*(.+)\s*$/);
+    if (!m) continue;
+    const url = m[1];
+    let rest = m[2].trim();
+    let location = null;
+    let asking = null;
+    const askMatch = rest.match(/Asking:\s*\$?([\d,]+)\s*$/);
+    if (askMatch) {
+      asking = parseInt(askMatch[1].replace(/,/g, ''), 10);
+      rest = rest.slice(0, askMatch.index).trim().replace(/\|+\s*$/, '').trim();
+    }
+    const locMatch = rest.match(/([^|]+,\s*[A-Z]{2})\s*$/);
+    if (locMatch) {
+      location = locMatch[1].trim();
+      rest = rest.slice(0, locMatch.index).trim().replace(/\|+\s*$/, '').trim();
+    }
+    leads.push({ url, business: rest || null, location, asking });
+  }
+  return leads;
+}
+
 export function filterDeals(deals, tabKey) {
   if (tabKey === 'all') return deals;
   if (tabKey === 'active') return deals.filter((d) => ACTIVE_STATUSES.has(d.status));
@@ -183,8 +211,8 @@ const PAGE_HTML = `<!DOCTYPE html>
   <pre id="preview-body"></pre>
 </div>
 <script>
-const TABS = [["all","All"],["active","Active"],["watchlist","Watchlist"],["done","Passed/Closed"]];
-let deals = [], tab = "all", q = "", sortMode = "score", selectedId = null;
+const TABS = [["pipeline","Pipeline"],["all","All"],["active","Active"],["watchlist","Watchlist"],["done","Passed/Closed"]];
+let deals = [], pipeline = [], tab = "pipeline", q = "", sortMode = "score", selectedId = null;
 
 const ACTIVE = new Set(["Evaluated","Outreach_Sent","Under_Review","LOI_Submitted","Under_LOI","Due_Diligence","Closing"]);
 const DONE = new Set(["Closed","Passed"]);
@@ -193,6 +221,7 @@ function num(v) { const n = parseFloat(String(v||"").replace(/[$,]/g,"").replace
 
 async function init() {
   deals = await (await fetch("/api/deals")).json();
+  pipeline = await (await fetch("/api/pipeline")).json();
   renderTabs();
   document.getElementById("search").addEventListener("input", e => { q = e.target.value.toLowerCase(); render(); });
   document.getElementById("sort").addEventListener("change", e => { sortMode = e.target.value; render(); });
@@ -200,6 +229,7 @@ async function init() {
   render();
 }
 function tabDeals() {
+  if (tab === "pipeline") return pipeline.map((l) => ({ ...l, askingPrice: l.asking ?? '', status: 'Pending', score: '', sde: '', multiple: '', category: '', date: '', id: '' }));
   if (tab === "active") return deals.filter(d => ACTIVE.has(d.status));
   if (tab === "watchlist") return deals.filter(d => d.status === "Watchlist");
   if (tab === "done") return deals.filter(d => DONE.has(d.status));
@@ -233,7 +263,9 @@ function render() {
     return num(b.score) - num(a.score);
   });
 
+  const isPipe = tab === "pipeline";
   document.getElementById("stats").textContent =
+    (isPipe ? pipeline.length + " pending · " : "") +
     deals.length + " deals · " +
     deals.filter(d=>ACTIVE.has(d.status)).length + " active · " +
     deals.filter(d=>d.status==="Watchlist").length + " watchlist";
@@ -246,18 +278,35 @@ function render() {
     const tr = document.createElement("tr");
     tr.className = "deal" + (d.id === selectedId ? " selected" : "");
     const sv = num(d.score);
-    tr.innerHTML =
-      "<td>" + d.id + "</td>" +
-      "<td>" + d.date + "</td>" +
-      '<td class="biz" title="' + d.notes.replace(/"/g,"&quot;") + '">' + d.business + "</td>" +
-      "<td>" + d.category + "</td>" +
-      "<td>" + d.location + "</td>" +
-      "<td>" + d.askingPrice + "</td>" +
-      "<td>" + d.sde + "</td>" +
-      "<td>" + d.multiple + "</td>" +
-      '<td class="' + scoreClass(sv) + '">' + d.score + "</td>" +
-      '<td><span class="badge ' + statusClass(d.status) + '">' + d.status + "</span></td>" +
-      "<td>" + (d.report ? '<a href="/deal/' + d.id + '">report ↗</a>' : "") + "</td>";
+    if (isPipe) {
+      const biz = d.business || d.url;
+      const safeUrl = d.url.replace(/"/g, "&quot;");
+      const asking = d.asking ? "$" + num(d.askingPrice).toLocaleString() : "—";
+      tr.innerHTML =
+        '<td class="biz">' + biz + "</td>" +
+        "<td></td>" +
+        "<td></td>" +
+        "<td>" + (d.location || "") + "</td>" +
+        "<td>" + asking + "</td>" +
+        "<td>—</td>" +
+        "<td>—</td>" +
+        "<td></td>" +
+        '<td><span class="badge active">Pending</span></td>' +
+        '<td><a href="' + safeUrl + '" target="_blank" rel="noopener">open ↗</a></td>';
+    } else {
+      tr.innerHTML =
+        "<td>" + d.id + "</td>" +
+        "<td>" + d.date + "</td>" +
+        '<td class="biz" title="' + d.notes.replace(/"/g,"&quot;") + '">' + d.business + "</td>" +
+        "<td>" + d.category + "</td>" +
+        "<td>" + d.location + "</td>" +
+        "<td>" + d.askingPrice + "</td>" +
+        "<td>" + d.sde + "</td>" +
+        "<td>" + d.multiple + "</td>" +
+        '<td class="' + scoreClass(sv) + '">' + d.score + "</td>" +
+        '<td><span class="badge ' + statusClass(d.status) + '">' + d.status + "</span></td>" +
+        "<td>" + (d.report ? '<a href="/deal/' + d.id + '">report ↗</a>' : "") + "</td>";
+    }
     tr.onclick = (e) => { if (e.target.tagName !== "A") togglePreview(d); };
     tbody.appendChild(tr);
   }
@@ -315,6 +364,12 @@ export function startServer({ port = DEFAULT_PORT, dataDir } = {}) {
     if (url.pathname === '/api/deals') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(loadDeals(dataDir)));
+      return;
+    }
+
+    if (url.pathname === '/api/pipeline') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(loadPipeline(dataDir)));
       return;
     }
 

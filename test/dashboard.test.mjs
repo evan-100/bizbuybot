@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { dump as yamlDump } from 'js-yaml';
-import { loadDeals, filterDeals, sortDeals, startServer, findFreePort } from '../dashboard.mjs';
+import { loadDeals, loadPipeline, filterDeals, sortDeals, startServer, findFreePort } from '../dashboard.mjs';
 
 function setupTempProject() {
   const tmpdir = fs.mkdtempSync(path.join(os.tmpdir(), 'bizbuybot-dash-'));
@@ -13,6 +13,16 @@ function setupTempProject() {
   const reportsDir = path.join(tmpdir, 'reports');
   fs.mkdirSync(dataDir);
   fs.mkdirSync(reportsDir);
+  fs.writeFileSync(
+    path.join(dataDir, 'pipeline.md'),
+    [
+      '# BizBuyBot — Pipeline Inbox',
+      '',
+      '## Pending',
+      '- [ ] https://www.bizquest.com/business-for-sale/pipeline-fixture/BW400000/ | Pipeline Fixture Biz | Orlando, FL | Asking: 400000',
+      '## Processed',
+    ].join('\n'),
+  );
   fs.writeFileSync(
     path.join(dataDir, 'acquisitions.md'),
     `# BizBuyBot — Acquisitions Tracker
@@ -93,6 +103,36 @@ test('loadDeals returns empty array for missing tracker', () => {
   assert.deepEqual(loadDeals(tmpdir), []);
 });
 
+test('loadPipeline parses pending inbox leads', () => {
+  const root = setupTempProject();
+  fs.writeFileSync(
+    path.join(root, 'data', 'pipeline.md'),
+    [
+      '# BizBuyBot — Pipeline Inbox',
+      '',
+      '## Pending',
+      '- [ ] https://www.bizquest.com/business-for-sale/alpha/BW123456/ | Alpha Laundromat | Austin, TX | Asking: 450000',
+      '- [ ] https://www.bizbuysell.com/business-opportunity/beta/234567/ | Beta HVAC | Dallas, TX',
+      '- [ ] https://www.bizquest.com/business-for-sale/gamma/BW345678/ | Gamma Wash | Tampa, FL | Asking: 650000',
+      '## Processed',
+      '- [ ] https://www.bizquest.com/business-for-sale/processed/BW999999/ | Old Deal | Miami, FL | Asking: 100000',
+    ].join('\n'),
+  );
+  const leads = loadPipeline(path.join(root, 'data'));
+  assert.equal(leads.length, 3, 'only ## Pending rows are parsed');
+  assert.equal(leads[0].business, 'Alpha Laundromat');
+  assert.equal(leads[0].location, 'Austin, TX');
+  assert.equal(leads[0].asking, 450000);
+  assert.equal(leads[1].asking, null, 'asking optional when absent');
+  assert.equal(leads[2].asking, 650000);
+  assert.ok(leads.every((l) => l.url.startsWith('http')), 'url preserved');
+});
+
+test('loadPipeline returns empty array for missing inbox', () => {
+  const tmpdir = fs.mkdtempSync(path.join(os.tmpdir(), 'bizbuybot-dash-'));
+  assert.deepEqual(loadPipeline(tmpdir), []);
+});
+
 test('filterDeals tabs select the right statuses', () => {
   const root = setupTempProject();
   const deals = loadDeals(path.join(root, 'data'));
@@ -152,6 +192,17 @@ test('GET /api/deals returns tracker rows as JSON', async () => {
   });
 });
 
+test('GET /api/pipeline returns pending inbox leads as JSON', async () => {
+  await withServer(async (base) => {
+    const res = await fetch(`${base}/api/pipeline`);
+    assert.equal(res.status, 200);
+    const leads = await res.json();
+    assert.equal(leads.length, 1, 'pipeline.md fixture has one pending lead');
+    assert.equal(leads[0].business, 'Pipeline Fixture Biz');
+    assert.equal(leads[0].asking, 400000);
+  });
+});
+
 test('GET / serves the dashboard HTML page', async () => {
   await withServer(async (base) => {
     const res = await fetch(base);
@@ -159,6 +210,8 @@ test('GET / serves the dashboard HTML page', async () => {
     const html = await res.text();
     assert.ok(html.includes('<title>BizBuyBot Dashboard</title>'));
     assert.ok(html.includes('/api/deals'));
+    assert.ok(html.includes('/api/pipeline'), 'dashboard page fetches the pipeline inbox');
+    assert.ok(html.includes('"pipeline","Pipeline"'), 'dashboard has a Pipeline tab');
   });
 });
 
