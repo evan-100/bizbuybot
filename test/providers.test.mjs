@@ -184,6 +184,38 @@ test('bizquest.buildSearchUrl builds city browse URL', () => {
   assert.equal(url, 'https://www.bizquest.com/businesses-for-sale-in-orlando-fl/');
 });
 
+// ===== buildLocationVariants =====
+
+test('bizbuysell.buildLocationVariants returns city, metro and state URLs', () => {
+  const urls = bizbuysell.buildLocationVariants('site:bizbuysell.com plumbing business for sale Orlando Florida');
+  assert.deepEqual(urls, [
+    'https://www.bizbuysell.com/florida-businesses-for-sale/orlando/',
+    'https://www.bizbuysell.com/florida/orlando-metro-area-businesses-for-sale/',
+    'https://www.bizbuysell.com/florida-businesses-for-sale/',
+  ]);
+});
+
+test('bizbuysell.buildLocationVariants falls back to state browse URL without city', () => {
+  const urls = bizbuysell.buildLocationVariants('site:bizbuysell.com laundromat for sale Texas');
+  assert.deepEqual(urls, [
+    'https://www.bizbuysell.com/texas-businesses-for-sale/',
+  ]);
+});
+
+test('bizquest.buildLocationVariants returns city, metro and state URLs', () => {
+  const urls = bizquest.buildLocationVariants('site:bizquest.com HVAC business for sale Orlando Florida');
+  assert.deepEqual(urls, [
+    'https://www.bizquest.com/businesses-for-sale-in-orlando-fl/',
+    'https://www.bizquest.com/businesses-for-sale-in-orlando-metro-area-fl/',
+    'https://www.bizquest.com/businesses-for-sale-in-florida-fl/',
+  ]);
+});
+
+test('bizquest.buildLocationVariants falls back to generic URL', () => {
+  const urls = bizquest.buildLocationVariants('commercial cleaning business for sale');
+  assert.deepEqual(urls, ['https://www.bizquest.com/businesses-for-sale/']);
+});
+
 // ===== parseSearchResults: BizBuySell =====
 
 test('bizbuysell.parseSearchResults extracts multiple listings', () => {
@@ -483,11 +515,52 @@ test('processListings deduplicates within same batch', () => {
     { title: 'Dup Biz', price: 450000, sde: 160000, revenue: 800000, location: 'Austin, TX', description: null, category: 'Laundromat', url: 'https://www.bizbuysell.com/opportunity/sss', source: 'bizbuysell' },
     { title: 'Dup Biz', price: 450000, sde: 160000, revenue: 800000, location: 'Austin, TX', description: null, category: 'Laundromat', url: 'https://www.bizbuysell.com/opportunity/sss', source: 'bizbuysell' },
   ];
-  const filters = { asking_price_range: { min: 100000, max: 1000000 }, sde_range: { min: 50000, max: 500000 }, categories: [], exclude_keywords: [] };
+const filters = { asking_price_range: { min: 100000, max: 1000000 }, sde_range: { min: 50000, max: 500000 }, categories: [], exclude_keywords: [] };
+
   const result = processListings(listings, { dataDir: dir, filters });
   assert.equal(result.added.length, 1);
 });
 
+test('processListings matches category synonyms', () => {
+  const dir = setupTempDataDir();
+  const listings = [
+    { title: 'Prime Coin Laundry - Orlando', price: 450000, sde: 160000, revenue: null, location: 'Orlando, FL', description: null, category: null, url: 'https://www.bizbuysell.com/opportunity/syn-a', source: 'bizbuysell' },
+    { title: 'Central Air Conditioning & Heating Co', price: 500000, sde: 150000, revenue: null, location: 'Tampa, FL', description: null, category: null, url: 'https://www.bizbuysell.com/opportunity/syn-b', source: 'bizbuysell' },
+    { title: 'Downtown Furniture Store', price: 400000, sde: 100000, revenue: null, location: 'Miami, FL', description: null, category: null, url: 'https://www.bizbuysell.com/opportunity/syn-c', source: 'bizbuysell' },
+  ];
+  const filters = { asking_price_range: null, sde_range: null, categories: ['laundromat', 'hvac'], locations: [], exclude_keywords: [] };
+  const result = processListings(listings, { dataDir: dir, filters });
+  assert.equal(result.added.length, 2, 'Coin Laundry and Air Conditioning should match');
+  const addedUrls = result.added.map((l) => l.url);
+  assert.ok(addedUrls.includes('https://www.bizbuysell.com/opportunity/syn-a'), 'coin wash synonym should match laundromat');
+  assert.ok(addedUrls.includes('https://www.bizbuysell.com/opportunity/syn-b'), 'air conditioning synonym should match hvac');
+  assert.equal(result.skipped.length, 1, 'furniture store should be rejected');
+});
+
+test('processListings deduplicates the same business across marketplace providers', () => {
+  const dir = setupTempDataDir();
+  const listings = [
+    { title: 'Orlando Plumbing Co', price: 450000, sde: 160000, revenue: null, location: 'Orlando, FL', description: null, category: 'Plumbing', url: 'https://www.bizbuysell.com/business-opportunity/turnkey-central-fl-plumbing/2534275/', source: 'bizbuysell' },
+    { title: 'Orlando Plumbing Co', price: 450000, sde: 160000, revenue: null, location: 'Orlando, FL', description: null, category: 'Plumbing', url: 'https://www.bizquest.com/business-for-sale/turnkey-central-fl-plumbing/BW2534275/', source: 'bizquest' },
+  ];
+  const filters = { asking_price_range: null, sde_range: null, categories: [], locations: [], exclude_keywords: [] };
+  const result = processListings(listings, { dataDir: dir, filters });
+  assert.equal(result.added.length, 1, 'same listing id on both providers should add once');
+  assert.equal(result.skipped.length, 1, 'second provider copy should be treated as duplicate');
+});
+
+test('processListings historic accepted row on one provider blocks the other provider copy', () => {
+  const dir = setupTempDataDir();
+  const tsv = fs.readFileSync(path.join(dir, 'scan-history.tsv'), 'utf-8');
+  fs.writeFileSync(path.join(dir, 'scan-history.tsv'), tsv + '\nexisting-001\thttps://www.bizbuysell.com/business-opportunity/turnkey-central-fl-plumbing/2534275/\tOrlando Plumbing Co\t450000\t160000\tbizbuysell\t2026-08-22');
+
+  const listings = [
+    { title: 'Orlando Plumbing Co', price: 450000, sde: 160000, revenue: null, location: 'Orlando, FL', description: null, category: 'Plumbing', url: 'https://www.bizquest.com/business-for-sale/turnkey-central-fl-plumbing/BW2534275/', source: 'bizquest' },
+  ];
+  const filters = { asking_price_range: null, sde_range: null, categories: [], locations: [], exclude_keywords: [] };
+  const result = processListings(listings, { dataDir: dir, filters });
+  assert.equal(result.added.length, 0, 'bizquest copy blocked by accepted bizbuysell row with same id');
+});
 test('processListings handles null price passing price filter when range is null', () => {
   const dir = setupTempDataDir();
   const listings = [

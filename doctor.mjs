@@ -89,6 +89,24 @@ export function runDoctor({ root }) {
   checkFile('portals.yml', 'warn');
   checkFile('buyer-profile.md', 'warn');
 
+  // Cross-validate profile vs. portals categories: a profile preferring all
+  // categories while portals.yml filters by categories is silent criteria drift.
+  try {
+    const profPath2 = path.join(root, 'config', 'profile.yml');
+    const portalPath2 = path.join(root, 'portals.yml');
+    if (fs.existsSync(profPath2) && fs.existsSync(portalPath2)) {
+
+      const prof2 = yamlLoad(fs.readFileSync(profPath2, 'utf8'));
+      const port2 = yamlLoad(fs.readFileSync(portalPath2, 'utf8'));
+      const profileCats = (prof2?.industries?.preferred || []).length;
+      const portalCats = (port2?.filters?.categories || []).length;
+      if (profileCats === 0 && portalCats > 0) {
+        checks.push({ name: 'Portal categories', status: 'warn',
+          message: `profile prefers all-categories but portals.yml filters by ${portalCats} — regenerate portals.yml or empty filters.categories` });
+      }
+    }
+  } catch { /* best-effort guardrail */ }
+
   // Benchmark tier
   try {
     const bench = loadBenchmarks(root);

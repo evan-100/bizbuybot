@@ -9,6 +9,25 @@ import { getProvider, listProviders } from './providers/index.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const CATEGORY_SYNONYMS = {
+  laundromat: ['laundromat', 'coin wash', 'coin laundry', 'wash and dry', 'wash n dry', 'wash-n-dry', 'laundry'],
+  'car wash': ['car wash', 'carwash', 'auto wash', 'vehicle wash'],
+  hvac: ['hvac', 'air conditioning', 'heating and air', 'heating and cooling', 'ac service', 'ac repair'],
+  plumbing: ['plumbing', 'plumber'],
+  'commercial cleaning': ['commercial cleaning', 'janitorial', 'office cleaning', 'building cleaning'],
+  'auto repair': ['auto repair', 'automotive repair', 'car repair', 'mechanic', 'repair shop', 'garage'],
+};
+
+function canonicalKey(url) {
+  if (!url) return '' ;
+  const segs = url.split('/') ;
+  let lastSeg = '' ;
+  for (let i = segs.length - 1; i >= 0; i--) { if (segs[i]) { lastSeg = segs[i]; break; } }
+  const id = lastSeg && lastSeg.replace(/^BW/, '') ;
+  if (id && /^\d{5,}$/.test(id) ) return 'id:' + id ;
+  return 'url:' + url.replace(/^https?:\/\/[^\/]+/i, '' ).toLowerCase() ;
+}
+
 function slugify(str) {
   return str
     .toLowerCase()
@@ -37,7 +56,11 @@ function passesSdeFilter(sde, range) {
 function passesCategoryFilter(listing, categories) {
   if (!categories || categories.length === 0) return true;
   const haystack = `${listing.title || ''} ${listing.category || ''}`.toLowerCase();
-  return categories.some((c) => haystack.includes(c.toLowerCase()));
+  return categories.some((c) => {
+    const terms = [c, ...(CATEGORY_SYNONYMS[c] || []).map((t) => t.toLowerCase())];
+    const base = c.toLowerCase();
+    return terms.concat([base]).some((t) => haystack.includes(t));
+  });
 }
 
 function passesLocationFilter(listing, locations) {
@@ -132,7 +155,7 @@ function readExistingRows(dataDir) {
   const map = new Map();
   for (const row of body) {
     const fields = row.split('\t');
-    if (fields[1]) map.set(fields[1], { rejected: isRejectedRow(row) });
+    if (fields[1]) map.set(canonicalKey(fields[1]), { rejected: isRejectedRow(row) });
   }
   return map;
 }
@@ -203,16 +226,16 @@ export function processListings(listings, { dataDir, filters }) {
       if (rejectionKey) rejectedRows.push(formatRejectedRow(listing, rejectionKey));
       continue;
     }
-    const prior = existing.get(listing.url);
+    const prior = existing.get(canonicalKey(listing.url));
     if (prior && !prior.rejected) {
       skipped.push({ ...listing, reason: 'duplicate (already scanned)' });
       continue;
     }
-    if (seenInBatch.has(listing.url)) {
+    if (seenInBatch.has(canonicalKey(listing.url))) {
       skipped.push({ ...listing, reason: 'duplicate (already scanned)' });
       continue;
     }
-    seenInBatch.add(listing.url);
+    seenInBatch.add(canonicalKey(listing.url));
     newPipelineLines.push(formatPipelineLine(listing));
     acceptedRows.push(formatHistoryRow(listing));
     added.push(listing);
@@ -244,27 +267,35 @@ export async function scanMarketplaces(config, { dataDir }) {
     const providerConfig = providersConfig[providerObj.id];
     if (!providerConfig || !providerConfig.enabled) continue;
 
+    const fetchedVariants = new Set();
     for (const { query } of searchQueries) {
       if (!query.toLowerCase().includes(`site:${providerObj.id}.com`)) continue;
 
-      const searchUrl = providerObj.buildSearchUrl(query);
-      const page = await fetchPage(searchUrl);
-      if (!page) {
-        errors.push({ url: searchUrl, provider: providerObj.id, error: 'fetch failed' });
-        continue;
-      }
+      const buildVariants = providerObj.buildLocationVariants || ((q) => [providerObj.buildSearchUrl(q)]);
+      const searchUrls = buildVariants(query).filter((u) => {
+        if (fetchedVariants.has(u)) return false;
+        fetchedVariants.add(u);
+        return true;
+      });
+      for (const searchUrl of searchUrls) {
+        const page = await fetchPage(searchUrl);
+        if (!page) {
+          errors.push({ url: searchUrl, provider: providerObj.id, error: "fetch failed" });
+          continue;
+        }
 
-      let listings;
-      try {
-        listings = providerObj.parseSearchResults(page.html, searchUrl);
-      } catch (err) {
-        errors.push({ url: searchUrl, provider: providerObj.id, error: err.message });
-        continue;
-      }
+        let listings;
+        try {
+          listings = providerObj.parseSearchResults(page.html, searchUrl);
+        } catch (err) {
+          errors.push({ url: searchUrl, provider: providerObj.id, error: err.message });
+          continue;
+        }
 
-      const result = processListings(listings, { dataDir, filters });
-      added.push(...result.added);
-      skipped.push(...result.skipped);
+        const result = processListings(listings, { dataDir, filters });
+        added.push(...result.added);
+        skipped.push(...result.skipped);
+      }
     }
   }
 

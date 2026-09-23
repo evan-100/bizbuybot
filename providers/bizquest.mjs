@@ -84,6 +84,19 @@ export default {
     return 'https://www.bizquest.com/businesses-for-sale/';
   },
 
+  buildLocationVariants(terms) {
+    const { city, st, stateName } = extractLocation(terms.replace(/\bsite:bizquest\.com\s*/i, ''));
+    const urls = [];
+    const stateSlug = stateName ? stateName.replace(/\s+/g, '-') : '';
+    if (st && city) {
+      urls.push(`https://www.bizquest.com/businesses-for-sale-in-${city}-${st}/`);
+      urls.push(`https://www.bizquest.com/businesses-for-sale-in-${city}-metro-area-${st}/`);
+    }
+    if (st && stateSlug) urls.push(`https://www.bizquest.com/businesses-for-sale-in-${stateSlug}-${st}/`);
+    if (urls.length === 0) urls.push('https://www.bizquest.com/businesses-for-sale/');
+    return urls;
+  },
+
   parseSearchResults(html, url) {
     const listings = [];
     if (!html) return listings;

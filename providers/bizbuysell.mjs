@@ -84,6 +84,18 @@ export default {
     return 'https://www.bizbuysell.com/businesses-for-sale/';
   },
 
+  buildLocationVariants(terms) {
+    const { city, st, stateName } = extractLocation(terms.replace(/\bsite:bizbuysell\.com\s*/i, ''));
+    const urls = [];
+    if (st && city) {
+      urls.push(`https://www.bizbuysell.com/${stateName}-businesses-for-sale/${city}/`);
+      urls.push(`https://www.bizbuysell.com/${stateName}/${city}-metro-area-businesses-for-sale/`);
+    }
+    if (st) urls.push(`https://www.bizbuysell.com/${stateName}-businesses-for-sale/`);
+    if (urls.length === 0) urls.push('https://www.bizbuysell.com/businesses-for-sale/');
+    return urls;
+  },
+
   parseSearchResults(html, url) {
     const listings = [];
     if (!html) return listings;

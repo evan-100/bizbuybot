@@ -28,7 +28,8 @@ It:
 - Reads `portals.yml` for search queries and filters.
 - Uses Playwright to fetch search engine results and listing pages.
 - Parses listings via the registered providers (`providers/bizbuysell.mjs`, `providers/bizquest.mjs`).
-- Deduplicates against `data/scan-history.tsv` (skips listings already added to the pipeline).
+- For each query, expands to **location variants** — exact city, the city's metro area, and the full state (these marketplaces server-render only the first page, and each distinct location URL surfaces a different top-N of listings; these sites expose no keyword-filtered URLs, so the profile category filter is applied client-side using synonym matching: e.g. a "Coin Laundry" title matches the `laundromat` category).
+- Deduplicates by canonical listing identity (the shared CoStar listing id), so the same business cross-listed on BizBuySell and BizQuest is added only once, and against `data/scan-history.tsv` (skips listings already added to the pipeline).
 - Appends new listings to `data/pipeline.md` under `## Pending`.
 - Appends new rows to `data/scan-history.tsv`. Listings rejected on **profile-driven** filters (category / location not in preferred list) are recorded with a `rejection` marker so they resurface once the buyer's criteria change; offer-driven rejections (price/SDE range, exclude keywords) are not recorded.
 - Prints a summary of new vs. skipped listings.

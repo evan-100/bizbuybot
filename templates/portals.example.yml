@@ -55,6 +55,10 @@ filters:
     - distressed
 
 # --- Provider Settings ---
+# max_results_per_query: not used server-side (marketplaces ignore it). Kept for reference.
+# Each query expands to location variants automatically: exact city, the city's metro
+# area, and the full state — these sites only server-render the first page, and each
+# distinct location URL surfaces a different top-N of listings.
 providers:
   bizbuysell:
     enabled: true

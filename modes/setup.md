@@ -106,9 +106,9 @@ After writing `config/profile.yml`, offer calibration:
 
 Create or **regenerate** `portals.yml` customized to their answers:
 - Copy the structure of `templates/portals.example.yml`.
-- Build `search_queries` for their preferred industries × preferred states (`site:bizbuysell.com <industry> for sale <state>` and the same for bizquest).
-- Set `filters.asking_price_range` from their budget, `filters.categories` from preferred industries, `filters.locations` from preferred states (empty = all).
-- Set `filters.sde_range.min` to the same `target_sde_range.min` written into the profile (the typical-derived floor), so scans don't filter out matches that pass deal criteria.
+- **All-categories case (empty `industries.preferred`):** write `filters.categories: []` — not the example's default six — and build location-scoped queries WITHOUT industry terms (e.g. `site:bizbuysell.com business for sale Orlando FL`). Do NOT fall back into the example template's category list whenever preferred industries are empty.
+- Otherwise: build `search_queries` for their preferred industries × preferred states (`site:bizbuysell.com <industry> for sale <state>` and the same for bizquest), and set `filters.categories` from preferred industries; `filters.locations` from preferred states (empty = all).
+- Set `filters.asking_price_range` from their budget; `filters.sde_range.min` to the same `target_sde_range.min` written into the profile (the typical-derived floor), so scans don't filter out matches that pass deal criteria.
 - Leave `exclude_keywords` empty unless they named exclusions beyond industries.
 
 **Regenerate when criteria change.** The scanner reads `portals.yml`, not `config/profile.yml`. If the user changed industries, budget range, or states — in onboarding or edit mode — rebuild `portals.yml` from the new values. Ask the user whether to keep any custom queries they added by hand before overwriting; keep those that still match the new criteria. Scans do not need their history cleared: criteria-rejected listings (see `modes/scan.md`) resurface automatically once the filters match them.
